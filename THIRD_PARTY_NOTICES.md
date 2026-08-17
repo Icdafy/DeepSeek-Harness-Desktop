@@ -1,6 +1,6 @@
 # Third-party notices
 
-DeepSeek Harness Desktop is a community-maintained desktop distribution. It is not an official DeepSeek desktop application.
+DeepSeek Harness is a community-maintained desktop distribution. It is not an official DeepSeek desktop application and is not endorsed by DeepSeek.
 
 ## DeepSeek Harness
 
@@ -33,8 +33,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-The application icon is derived from the MIT-licensed DeepSeek Harness favicon at `apps/web/public/favicon.svg` and is used to identify the bundled software.
+The application icon uses the official DeepSeek GitHub organization artwork at <https://github.com/deepseek-ai>. DeepSeek's name, whale logo, and related marks belong to their respective owner; their use identifies compatibility with the bundled upstream project and does not imply endorsement.
 
 ## Other bundled software
 
-The distribution also contains Electron, Node.js, pnpm, and the transitive npm dependencies of DeepSeek Harness. Their package metadata and license files are retained in the packaged runtime. Node.js and Electron also ship their own license and third-party notice files in the executable distribution.
+The distribution also contains Electron, electron-updater, Node.js, pnpm, and the transitive npm dependencies of DeepSeek Harness. Their package metadata and license files are retained in the packaged runtime. Node.js and Electron also ship their own license and third-party notice files in the executable distribution.

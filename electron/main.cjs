@@ -1,11 +1,24 @@
 "use strict";
 
-const { app, BrowserWindow, Menu, dialog, session, shell } = require("electron");
+const {
+  app,
+  BrowserWindow,
+  Menu,
+  dialog,
+  ipcMain,
+  nativeImage,
+  nativeTheme,
+  session,
+  shell,
+} = require("electron");
+const { autoUpdater } = require("electron-updater");
 const { spawn, spawnSync } = require("node:child_process");
 const {
   appendFileSync,
+  copyFileSync,
   existsSync,
   mkdirSync,
+  readFileSync,
   renameSync,
   rmSync,
   statSync,
@@ -18,9 +31,15 @@ const {
   isSafeExternalUrl,
   prependPath,
 } = require("./runtime-utils.cjs");
+const { createUpdateController } = require("./updater.cjs");
+
+// GUI launches may outlive their parent console. Ignore closed-pipe errors so
+// logging cannot become a recursive uncaught-exception loop.
+process.stdout?.on?.("error", () => {});
+process.stderr?.on?.("error", () => {});
 
 const APP_ID = "ai.deepseek.harness.desktop";
-const APP_NAME = "DeepSeek Harness Desktop";
+const APP_NAME = "DeepSeek Harness";
 const STARTUP_TIMEOUT_MS = 45_000;
 const SHUTDOWN_TIMEOUT_MS = 3_000;
 const LOG_MAX_BYTES = 2 * 1024 * 1024;
@@ -31,11 +50,27 @@ const SMOKE_TEST =
 app.setName(APP_NAME);
 app.setAppUserModelId(APP_ID);
 
+function migrateLegacyUserData() {
+  const target = path.join(app.getPath("appData"), APP_NAME);
+  const legacy = path.join(app.getPath("appData"), "DeepSeek Harness Desktop");
+  if (!existsSync(target) && existsSync(legacy)) {
+    try {
+      renameSync(legacy, target);
+    } catch {
+      // Keep the legacy directory untouched if another process is using it.
+    }
+  }
+  app.setPath("userData", target);
+}
+
+migrateLegacyUserData();
+
 let mainWindow = null;
 let harnessProcess = null;
 let harnessUrl = null;
 let quitting = false;
 let logFile = null;
+let updateController = null;
 
 function ensureDirectory(directory) {
   mkdirSync(directory, { recursive: true });
@@ -60,7 +95,11 @@ function configureLogging() {
 function log(level, message) {
   const line = `${new Date().toISOString()} [${level}] ${message}`;
   if (SMOKE_TEST || !app.isPackaged) {
-    process.stdout.write(`${line}\n`);
+    try {
+      process.stdout.write(`${line}\n`);
+    } catch {
+      // Detached GUI launches can close stdout before Electron exits.
+    }
   }
   if (logFile) {
     try {
@@ -102,6 +141,102 @@ function runtimePaths() {
     ),
     bin: path.join(root, "runtime", "node_modules", ".bin"),
   };
+}
+
+function desktopIntegrationPaths() {
+  if (app.isPackaged) {
+    return {
+      icon: path.join(process.resourcesPath, "desktop", "icon.png"),
+      patch: path.join(
+        process.resourcesPath,
+        "harness",
+        "node_modules",
+        "@deepseek-harness",
+        "desktop-updater",
+        "cordis.patch.yml",
+      ),
+      plugin: path.join(
+        process.resourcesPath,
+        "harness",
+        "node_modules",
+        "@deepseek-harness",
+        "desktop-updater",
+      ),
+    };
+  }
+
+  const root = app.getAppPath();
+  return {
+    icon: path.join(root, "build", "icon.png"),
+    patch: path.join(root, "desktop-updater", "cordis.patch.yml"),
+    plugin: path.join(root, "desktop-updater"),
+  };
+}
+
+function readJson(file) {
+  try {
+    return JSON.parse(readFileSync(file, "utf8"));
+  } catch {
+    return null;
+  }
+}
+
+function ensureDesktopUpdaterPlugin(home, paths, environment) {
+  const source = desktopIntegrationPaths().plugin;
+  const target = ensureDirectory(path.join(home, "profiles", "web", "plugins", "desktop-updater"));
+  ensureDirectory(path.join(target, "lib"));
+
+  for (const relative of [
+    "package.json",
+    "cordis.patch.yml",
+    path.join("lib", "index.js"),
+    path.join("lib", "client.js"),
+  ]) {
+    const sourceFile = path.join(source, relative);
+    if (!existsSync(sourceFile)) {
+      throw new Error(`Desktop updater plugin file is missing: ${sourceFile}`);
+    }
+    copyFileSync(sourceFile, path.join(target, relative));
+  }
+
+  const sourceVersion = readJson(path.join(source, "package.json"))?.version;
+  const installedManifest = path.join(
+    home,
+    "profiles",
+    "web",
+    "node_modules",
+    "@deepseek-harness",
+    "desktop-updater",
+    "package.json",
+  );
+  const installedVersion = readJson(installedManifest)?.version;
+  if (sourceVersion && installedVersion === sourceVersion) return;
+
+  log("info", `Installing desktop updater plugin v${sourceVersion ?? "unknown"}`);
+  const result = spawnSync(
+    paths.node,
+    [
+      paths.dsh,
+      "plugin",
+      "--profile",
+      "web",
+      "add",
+      "--offline",
+      "file:plugins/desktop-updater",
+    ],
+    {
+      cwd: home,
+      env: environment,
+      windowsHide: true,
+      encoding: "utf8",
+      timeout: STARTUP_TIMEOUT_MS,
+    },
+  );
+  if (result.status !== 0) {
+    throw new Error(
+      `Unable to install desktop updater plugin: ${(result.stderr || result.stdout || "unknown error").trim()}`,
+    );
+  }
 }
 
 function dshHomePath() {
@@ -171,6 +306,12 @@ function startHarness() {
   );
   environment.PATH = environment.Path;
 
+  try {
+    ensureDesktopUpdaterPlugin(home, paths, environment);
+  } catch (error) {
+    return Promise.reject(error);
+  }
+
   log("info", `Starting Harness with data directory ${home}`);
 
   return new Promise((resolve, reject) => {
@@ -179,7 +320,17 @@ function startHarness() {
 
     harnessProcess = spawn(
       paths.node,
-      [paths.dsh, "--profile", "web", "--host", "127.0.0.1", "--port", "0"],
+      [
+        paths.dsh,
+        "--profile",
+        "web",
+        "--patch",
+        desktopIntegrationPaths().patch,
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "0",
+      ],
       {
         cwd: home,
         env: environment,
@@ -233,7 +384,7 @@ function startHarness() {
       } else if (unexpected && mainWindow && !mainWindow.isDestroyed()) {
         void showFatalError(
           "DeepSeek Harness stopped unexpectedly",
-          `The local service exited with code ${code}. Use File → Restart Harness to try again.`,
+          `The local service exited with code ${code}. Close and reopen DeepSeek Harness to try again.`,
         );
       }
     });
@@ -302,17 +453,26 @@ function openExternal(targetUrl) {
 }
 
 function createWindow() {
+  const dark = nativeTheme.shouldUseDarkColors;
   mainWindow = new BrowserWindow({
     width: 1440,
     height: 960,
     minWidth: 960,
     minHeight: 640,
     show: false,
-    backgroundColor: "#0b1020",
+    backgroundColor: dark ? "#171719" : "#f7f7f8",
+    icon: desktopIntegrationPaths().icon,
     title: APP_NAME,
+    titleBarStyle: "hidden",
+    titleBarOverlay: {
+      color: dark ? "#171719" : "#f7f7f8",
+      symbolColor: dark ? "#f5f5f5" : "#171717",
+      height: 40,
+    },
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false,
+      preload: path.join(__dirname, "preload.cjs"),
       sandbox: true,
       webSecurity: true,
       spellcheck: true,
@@ -367,86 +527,6 @@ async function showFatalError(title, detail) {
       buttons: ["OK"],
     });
   }
-}
-
-function installMenu() {
-  const template = [
-    {
-      label: "File",
-      submenu: [
-        {
-          label: "Restart Harness",
-          accelerator: "CmdOrCtrl+Shift+R",
-          click: () => void restartHarness(),
-        },
-        {
-          label: "Open Data Folder",
-          click: () => void shell.openPath(dshHomePath()),
-        },
-        {
-          label: "Open Log Folder",
-          click: () => void shell.openPath(path.join(app.getPath("userData"), "logs")),
-        },
-        { type: "separator" },
-        { role: "quit" },
-      ],
-    },
-    {
-      label: "Edit",
-      submenu: [
-        { role: "undo" },
-        { role: "redo" },
-        { type: "separator" },
-        { role: "cut" },
-        { role: "copy" },
-        { role: "paste" },
-        { role: "selectAll" },
-      ],
-    },
-    {
-      label: "View",
-      submenu: [
-        { role: "reload" },
-        { role: "forceReload" },
-        { type: "separator" },
-        { role: "resetZoom" },
-        { role: "zoomIn" },
-        { role: "zoomOut" },
-        { type: "separator" },
-        { role: "togglefullscreen" },
-      ],
-    },
-    {
-      label: "Help",
-      submenu: [
-        {
-          label: "Desktop Releases",
-          click: () =>
-            openExternal("https://github.com/Icdafy/DeepSeek-Harness-Desktop/releases"),
-        },
-        {
-          label: "DeepSeek Harness Documentation",
-          click: () => openExternal("https://github.com/deepseek-ai/DeepSeek-Harness"),
-        },
-        { type: "separator" },
-        {
-          label: `About ${APP_NAME}`,
-          click: () => {
-            void dialog.showMessageBox(mainWindow ?? undefined, {
-              type: "info",
-              title: APP_NAME,
-              message: `${APP_NAME} v${app.getVersion()}`,
-              detail:
-                "Desktop distribution of the MIT-licensed DeepSeek Harness developer preview.",
-              buttons: ["OK"],
-            });
-          },
-        },
-      ],
-    },
-  ];
-
-  Menu.setApplicationMenu(Menu.buildFromTemplate(template));
 }
 
 async function runSmokeTest() {
@@ -507,8 +587,41 @@ if (!hasSingleInstanceLock) {
       return;
     }
 
-    installMenu();
+    Menu.setApplicationMenu(null);
     createWindow();
+
+    updateController = createUpdateController({
+      app,
+      autoUpdater,
+      dialog,
+      log,
+      getWindow: () => mainWindow,
+    });
+    ipcMain.handle("desktop-updates:get-state", () => updateController.getState());
+    ipcMain.handle("desktop-updates:set-enabled", (_event, enabled) =>
+      updateController.setEnabled(enabled),
+    );
+    ipcMain.handle("desktop-updates:check-now", () => updateController.checkNow());
+    ipcMain.handle("desktop:get-window-metadata", () => ({
+      appName: APP_NAME,
+      iconDataUrl: nativeImage
+        .createFromPath(desktopIntegrationPaths().icon)
+        .resize({ width: 48, height: 48 })
+        .toDataURL(),
+    }));
+    ipcMain.on("desktop:titlebar-colors", (_event, colors) => {
+      if (!mainWindow || mainWindow.isDestroyed()) return;
+      const isCssColor = (value) =>
+        typeof value === "string" &&
+        (/^#[\da-f]{3,8}$/i.test(value) || /^rgba?\([\d\s.,%]+\)$/i.test(value));
+      if (!isCssColor(colors?.background) || !isCssColor(colors?.foreground)) return;
+      mainWindow.setTitleBarOverlay({
+        color: colors.background,
+        symbolColor: colors.foreground,
+        height: 40,
+      });
+    });
+    updateController.start();
 
     try {
       const url = await startHarness();
@@ -521,6 +634,7 @@ if (!hasSingleInstanceLock) {
 
 app.on("before-quit", () => {
   quitting = true;
+  updateController?.stop();
   stopHarnessSync();
 });
 

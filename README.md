@@ -1,4 +1,4 @@
-# DeepSeek Harness Desktop
+# DeepSeek Harness
 
 [![CI](https://github.com/Icdafy/DeepSeek-Harness-Desktop/actions/workflows/ci.yml/badge.svg)](https://github.com/Icdafy/DeepSeek-Harness-Desktop/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/Icdafy/DeepSeek-Harness-Desktop)](https://github.com/Icdafy/DeepSeek-Harness-Desktop/releases)
@@ -13,8 +13,8 @@
 
 前往 [Releases](https://github.com/Icdafy/DeepSeek-Harness-Desktop/releases/latest) 下载 Windows x64 版本：
 
-- `DeepSeek-Harness-Desktop-Setup-0.0.1-x64.exe`：标准安装器，支持选择安装目录、桌面快捷方式和卸载。
-- `DeepSeek-Harness-Desktop-Portable-0.0.1-x64.exe`：免安装便携版。
+- `DeepSeek-Harness-Setup-0.0.2-x64.exe`：标准安装器，支持选择安装目录、桌面快捷方式和卸载。
+- `DeepSeek-Harness-Portable-0.0.2-x64.exe`：免安装便携版。
 - `SHA256SUMS.txt`：发布文件的 SHA-256 校验值。
 
 本版本尚未使用商业代码签名证书，Windows SmartScreen 可能显示未知发布者。请只从本仓库 Releases 下载，并核对 SHA-256。
@@ -35,20 +35,24 @@
 - 单实例、自动选择空闲端口、服务就绪检测和进程回收。
 - Electron 渲染器启用上下文隔离、沙箱并关闭 Node.js 集成。
 - 外部链接交给系统浏览器，应用窗口只允许访问当前本地 Harness 来源。
-- **File → Restart Harness** 可重启本地服务。
-- **File → Open Data Folder / Open Log Folder** 可快速定位数据与诊断日志。
+- 使用 DeepSeek 官方黑色鲸鱼图标，应用名称统一为 **DeepSeek Harness**。
+- 隐藏原生菜单栏，自绘标题区会跟随浅色、深色或系统主题。
+- **Settings → General → 自动接收桌面更新** 可独立开启或关闭 GitHub Releases 更新，并支持手动检查。
+
+> v0.0.1 尚未包含更新模块，因此现有 v0.0.1 用户需要手动安装 v0.0.2 一次；从 v0.0.2 开始，已开启该选项的客户端会自动接收后续正式 Release。
 
 ## 数据位置
 
 安装版和便携版默认都把配置、会话和日志保存到用户应用数据目录：
 
 ```text
-%APPDATA%\DeepSeek Harness Desktop\
+%APPDATA%\DeepSeek Harness\
 ├── dsh-home\
+├── desktop-settings.json
 └── logs\desktop.log
 ```
 
-卸载程序默认保留这部分数据，避免误删会话和配置。需要彻底清除时，请在退出应用后手动备份并删除该目录。
+从 v0.0.1 首次升级时，若新目录尚不存在，应用会自动迁移 `%APPDATA%\DeepSeek Harness Desktop` 中的原有数据。卸载程序默认保留数据，避免误删会话和配置。
 
 ## 从源码构建
 
@@ -67,7 +71,7 @@ pnpm run verify:dist
 
 ## 发布
 
-推送 `v*` 标签会触发 Windows Release 工作流。流水线在干净的 GitHub Actions 环境中安装锁定依赖、运行测试、构建安装器与便携版、执行便携版冒烟测试、生成 SHA-256，然后先创建草稿 Release，待附件完整上传后再发布。
+推送 `v*` 标签会触发 Windows Release 工作流。流水线在干净的 GitHub Actions 环境中安装锁定依赖、运行测试、构建安装器与便携版、执行便携版冒烟测试、生成 SHA-256，并上传自动更新所需的 `latest.yml` 与 blockmap。只有正式发布的 GitHub Release 才会通知已开启自动更新的桌面客户端。
 
 ## 许可证与归属
 

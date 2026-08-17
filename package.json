@@ -1,6 +1,6 @@
 {
   "name": "deepseek-harness-desktop",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A native Windows desktop wrapper for DeepSeek Harness",
   "private": true,
   "license": "MIT",
@@ -26,6 +26,9 @@
     "verify:dist": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/verify-dist.ps1",
     "test": "node --test test/*.test.cjs"
   },
+  "dependencies": {
+    "electron-updater": "6.6.2"
+  },
   "devDependencies": {
     "electron": "43.4.0",
     "electron-builder": "26.15.3",
@@ -33,7 +36,7 @@
   },
   "build": {
     "appId": "ai.deepseek.harness.desktop",
-    "productName": "DeepSeek Harness Desktop",
+    "productName": "DeepSeek Harness",
     "copyright": "Copyright © 2026 Icdafy and contributors",
     "asar": true,
     "compression": "normal",
@@ -46,7 +49,7 @@
       "package.json",
       "LICENSE",
       "THIRD_PARTY_NOTICES.md",
-      "build/icon.svg"
+      "build/icon.png"
     ],
     "extraResources": [
       {
@@ -65,10 +68,14 @@
       {
         "from": "THIRD_PARTY_NOTICES.md",
         "to": "THIRD_PARTY_NOTICES.md"
+      },
+      {
+        "from": "build/icon.png",
+        "to": "desktop/icon.png"
       }
     ],
     "win": {
-      "icon": "build/icon.ico",
+      "icon": "build/icon.png",
       "target": [
         {
           "target": "nsis",
@@ -81,20 +88,20 @@
       ]
     },
     "nsis": {
-      "artifactName": "DeepSeek-Harness-Desktop-Setup-${version}-${arch}.${ext}",
+      "artifactName": "DeepSeek-Harness-Setup-${version}-${arch}.${ext}",
       "oneClick": false,
       "perMachine": false,
       "allowElevation": true,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "DeepSeek Harness Desktop",
-      "uninstallDisplayName": "DeepSeek Harness Desktop ${version}",
+      "shortcutName": "DeepSeek Harness",
+      "uninstallDisplayName": "DeepSeek Harness ${version}",
       "deleteAppDataOnUninstall": false,
       "runAfterFinish": true
     },
     "portable": {
-      "artifactName": "DeepSeek-Harness-Desktop-Portable-${version}-${arch}.${ext}",
+      "artifactName": "DeepSeek-Harness-Portable-${version}-${arch}.${ext}",
       "requestExecutionLevel": "user"
     },
     "publish": {

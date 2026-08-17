@@ -6,14 +6,35 @@ $ErrorActionPreference = 'Stop'
 
 $repositoryRoot = [IO.Path]::GetFullPath((Split-Path -Parent $PSScriptRoot))
 $distDirectory = Join-Path $repositoryRoot 'dist'
-$setup = @(Get-ChildItem -LiteralPath $distDirectory -Filter 'DeepSeek-Harness-Desktop-Setup-*.exe' -File)
-$portable = @(Get-ChildItem -LiteralPath $distDirectory -Filter 'DeepSeek-Harness-Desktop-Portable-*.exe' -File)
+$manifest = Get-Content -LiteralPath (Join-Path $repositoryRoot 'package.json') -Raw | ConvertFrom-Json
+$version = [string] $manifest.version
+$setup = @(Get-ChildItem -LiteralPath $distDirectory -Filter 'DeepSeek-Harness-Setup-*.exe' -File)
+$portable = @(Get-ChildItem -LiteralPath $distDirectory -Filter 'DeepSeek-Harness-Portable-*.exe' -File)
+$blockmap = @(Get-ChildItem -LiteralPath $distDirectory -Filter 'DeepSeek-Harness-Setup-*.exe.blockmap' -File)
+$latestPath = Join-Path $distDirectory 'latest.yml'
 
 if ($setup.Count -ne 1) {
     throw "Expected exactly one NSIS installer, found $($setup.Count)"
 }
 if ($portable.Count -ne 1) {
     throw "Expected exactly one portable executable, found $($portable.Count)"
+}
+if ($blockmap.Count -ne 1) {
+    throw "Expected exactly one NSIS updater blockmap, found $($blockmap.Count)"
+}
+if (-not (Test-Path -LiteralPath $latestPath)) {
+    throw 'Missing latest.yml required by electron-updater'
+}
+
+$latest = Get-Content -LiteralPath $latestPath -Raw
+if ($latest -notmatch "(?m)^version:\s*$([regex]::Escape($version))\s*$") {
+    throw "latest.yml does not describe version $version"
+}
+if ($latest -notmatch [regex]::Escape($setup[0].Name)) {
+    throw "latest.yml does not reference $($setup[0].Name)"
+}
+if ($latest -notmatch '(?m)^sha512:\s*\S+') {
+    throw 'latest.yml does not contain an installer SHA-512 digest'
 }
 
 foreach ($artifact in @($setup[0], $portable[0])) {
@@ -56,9 +77,9 @@ $stdout = Get-Content -LiteralPath $stdoutPath -Raw -ErrorAction SilentlyContinu
 $stderr = Get-Content -LiteralPath $stderrPath -Raw -ErrorAction SilentlyContinue
 $result = Get-Content -LiteralPath $resultPath -Raw -ErrorAction SilentlyContinue
 
-if ($result -notmatch '^OK 0\.0\.1 http://127\.0\.0\.1:\d+') {
+if ($result -notmatch "^OK $([regex]::Escape($version)) http://127\.0\.0\.1:\d+") {
     throw "Portable smoke test failed.`nRESULT:`n$result`nSTDOUT:`n$stdout`nSTDERR:`n$stderr"
 }
 
 Remove-Item -LiteralPath $stdoutPath, $stderrPath, $resultPath -Force -ErrorAction SilentlyContinue
-Write-Host "Verified installer and portable executable; portable smoke test passed."
+Write-Host "Verified installer, portable executable, updater metadata, and packaged smoke test."

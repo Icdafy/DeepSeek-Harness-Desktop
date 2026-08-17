@@ -27,7 +27,7 @@ function Get-Sha256 {
 }
 
 $artifacts = Get-ChildItem -LiteralPath $distDirectory -File | Where-Object {
-    $_.Name -match '^DeepSeek-Harness-Desktop-(Setup|Portable)-.*\.exe$'
+    $_.Name -match '^DeepSeek-Harness-(Setup|Portable)-.*\.exe$'
 } | Sort-Object Name
 
 if ($artifacts.Count -ne 2) {

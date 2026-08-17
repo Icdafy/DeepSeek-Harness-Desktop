@@ -1,5 +1,6 @@
 packages:
   - .
+  - desktop-updater
   - runtime
 
 managePackageManagerVersions: false

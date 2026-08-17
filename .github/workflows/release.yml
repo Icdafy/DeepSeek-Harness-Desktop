@@ -56,17 +56,21 @@ jobs:
           $notesPath = Join-Path 'docs/releases' "$tag.md"
           $assets = @(
             Get-ChildItem -LiteralPath 'dist' -File |
-              Where-Object { $_.Name -match '^DeepSeek-Harness-Desktop-(Setup|Portable)-.*\.exe$' -or $_.Name -eq 'SHA256SUMS.txt' } |
+              Where-Object {
+                $_.Name -match '^DeepSeek-Harness-(Setup|Portable)-.*\.exe$' -or
+                $_.Name -match '^DeepSeek-Harness-Setup-.*\.exe\.blockmap$' -or
+                $_.Name -in @('latest.yml', 'SHA256SUMS.txt')
+              } |
               Sort-Object Name |
               ForEach-Object { $_.FullName }
           )
-          if ($assets.Count -ne 3) {
-            throw "Expected two executables and SHA256SUMS.txt, found $($assets.Count) release assets"
+          if ($assets.Count -ne 5) {
+            throw "Expected installer, portable executable, updater metadata, blockmap, and checksums; found $($assets.Count) release assets"
           }
           if (Test-Path -LiteralPath $notesPath) {
-            gh release create $tag @assets --verify-tag --draft --title "DeepSeek Harness Desktop $tag" --notes-file $notesPath
+            gh release create $tag @assets --verify-tag --draft --title "DeepSeek Harness $tag" --notes-file $notesPath
           }
           else {
-            gh release create $tag @assets --verify-tag --draft --title "DeepSeek Harness Desktop $tag" --generate-notes
+            gh release create $tag @assets --verify-tag --draft --title "DeepSeek Harness $tag" --generate-notes
           }
           gh release edit $tag --draft=false --latest
