@@ -1,0 +1,31 @@
+# Dependencies and package-manager state
+node_modules/
+.pnpm-store/
+
+# Local runtimes and user data
+.runtime/
+.dsh-home/
+.dsh-test-home/
+runtime/node_modules/
+
+# Generated build output
+build/runtime/
+build/runtime-hoisted*/
+build/cache/
+dist/
+out/
+
+# Logs, coverage, and OS/editor files
+*.log
+coverage/
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Local-only bootstrap files retained outside the release source
+README.local.zh-CN.md
+dsh.cmd
+dsh.ps1
+start-dsh.cmd
+start-dsh.ps1

@@ -1,0 +1,39 @@
+name: Bug report
+description: Report a reproducible DeepSeek Harness Desktop problem
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please remove API keys, credentials, private workspace paths, and conversation content from screenshots and logs before submitting.
+  - type: input
+    id: version
+    attributes:
+      label: Desktop version
+      placeholder: v0.0.1
+    validations:
+      required: true
+  - type: dropdown
+    id: distribution
+    attributes:
+      label: Distribution
+      options:
+        - NSIS installer
+        - Portable executable
+        - Development checkout
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: Include the expected result and exact reproduction steps.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Sanitized desktop log
+      description: Paste only the relevant lines from File → Open Log Folder after removing private data.
+      render: text
