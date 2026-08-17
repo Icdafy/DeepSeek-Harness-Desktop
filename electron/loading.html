@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; style-src 'unsafe-inline'; img-src 'self' data:"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Starting DeepSeek Harness</title>
+    <style>
+      :root { color-scheme: dark; font-family: Inter, "Segoe UI", sans-serif; }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        color: #eef2ff;
+        background:
+          radial-gradient(circle at 20% 20%, rgba(77, 107, 254, 0.25), transparent 35%),
+          radial-gradient(circle at 80% 75%, rgba(32, 200, 170, 0.16), transparent 35%),
+          #0b1020;
+      }
+      main { display: grid; justify-items: center; gap: 20px; padding: 48px; text-align: center; }
+      img { width: 76px; height: 76px; }
+      h1 { margin: 0; font-size: 26px; font-weight: 650; letter-spacing: -0.02em; }
+      p { margin: 0; color: #aab4d6; }
+      .loader {
+        width: 220px;
+        height: 3px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.1);
+      }
+      .loader::after {
+        content: "";
+        display: block;
+        width: 42%;
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, #4d6bfe, #6ee7d2);
+        animation: loading 1.15s ease-in-out infinite alternate;
+      }
+      @keyframes loading { from { transform: translateX(-20%); } to { transform: translateX(160%); } }
+    </style>
+  </head>
+  <body>
+    <main>
+      <img src="../build/icon.svg" alt="" />
+      <h1>Starting DeepSeek Harness</h1>
+      <div class="loader" aria-label="Loading"></div>
+      <p>Preparing the private local service…</p>
+    </main>
+  </body>
+</html>

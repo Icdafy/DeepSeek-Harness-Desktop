@@ -1,0 +1,22 @@
+packages:
+  - .
+  - runtime
+
+managePackageManagerVersions: false
+confirmModulesPurge: false
+verifyDepsBeforeRun: false
+strictPeerDependencies: false
+autoInstallPeers: true
+
+# Match the lifecycle-script allowlist reviewed by the upstream repository.
+allowBuilds:
+  node-pty: true
+  koffi: true
+  '@deepseek-ai/dsh-subprocess-local': true
+  esbuild: true
+  lefthook: true
+  '@google/genai': false
+  protobufjs: false
+  node-addon-require-builtin: false
+  electron-winstaller: false
+  electron: true

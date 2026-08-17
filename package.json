@@ -1,0 +1,107 @@
+{
+  "name": "deepseek-harness-desktop",
+  "version": "0.0.1",
+  "description": "A native Windows desktop wrapper for DeepSeek Harness",
+  "private": true,
+  "license": "MIT",
+  "author": "Icdafy",
+  "homepage": "https://github.com/Icdafy/DeepSeek-Harness-Desktop",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Icdafy/DeepSeek-Harness-Desktop.git"
+  },
+  "main": "electron/main.cjs",
+  "packageManager": "pnpm@11.22.0",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron .",
+    "smoke": "electron . --smoke-test",
+    "runtime:prepare": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/prepare-runtime.ps1",
+    "pack": "pnpm run runtime:prepare && electron-builder --win dir --x64",
+    "dist": "pnpm run runtime:prepare && electron-builder --win nsis portable --x64 --publish never",
+    "checksums": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/write-checksums.ps1",
+    "verify:dist": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/verify-dist.ps1",
+    "test": "node --test test/*.test.cjs"
+  },
+  "devDependencies": {
+    "electron": "43.4.0",
+    "electron-builder": "26.15.3",
+    "pnpm": "11.22.0"
+  },
+  "build": {
+    "appId": "ai.deepseek.harness.desktop",
+    "productName": "DeepSeek Harness Desktop",
+    "copyright": "Copyright © 2026 Icdafy and contributors",
+    "asar": true,
+    "compression": "normal",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "electron/**/*",
+      "package.json",
+      "LICENSE",
+      "THIRD_PARTY_NOTICES.md",
+      "build/icon.svg"
+    ],
+    "extraResources": [
+      {
+        "from": ".runtime/node.exe",
+        "to": "runtime/node.exe"
+      },
+      {
+        "from": "build/runtime/package.json",
+        "to": "harness/package.json"
+      },
+      {
+        "from": "build/runtime/node_modules",
+        "to": "harness/node_modules",
+        "filter": ["**/*"]
+      },
+      {
+        "from": "THIRD_PARTY_NOTICES.md",
+        "to": "THIRD_PARTY_NOTICES.md"
+      }
+    ],
+    "win": {
+      "icon": "build/icon.ico",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        },
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        }
+      ]
+    },
+    "nsis": {
+      "artifactName": "DeepSeek-Harness-Desktop-Setup-${version}-${arch}.${ext}",
+      "oneClick": false,
+      "perMachine": false,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "DeepSeek Harness Desktop",
+      "uninstallDisplayName": "DeepSeek Harness Desktop ${version}",
+      "deleteAppDataOnUninstall": false,
+      "runAfterFinish": true
+    },
+    "portable": {
+      "artifactName": "DeepSeek-Harness-Desktop-Portable-${version}-${arch}.${ext}",
+      "requestExecutionLevel": "user"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "Icdafy",
+      "repo": "DeepSeek-Harness-Desktop",
+      "releaseType": "release"
+    }
+  }
+}

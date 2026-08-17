@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows-build:
+    name: Windows x64 build
+    runs-on: windows-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v5
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.22.0
+          run_install: false
+
+      - name: Install Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24.14.0
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run tests
+        run: pnpm run test
+
+      - name: Build Windows artifacts
+        run: pnpm run dist
+
+      - name: Generate checksums
+        run: pnpm run checksums
+
+      - name: Verify packaged application
+        run: pnpm run verify:dist
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: DeepSeek-Harness-Desktop-v0.0.1-windows-x64
+          if-no-files-found: error
+          retention-days: 14
+          path: |
+            dist/DeepSeek-Harness-Desktop-Setup-*.exe
+            dist/DeepSeek-Harness-Desktop-Portable-*.exe
+            dist/SHA256SUMS.txt
