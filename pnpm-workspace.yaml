@@ -7,6 +7,8 @@ confirmModulesPurge: false
 verifyDepsBeforeRun: false
 strictPeerDependencies: false
 autoInstallPeers: true
+nodeLinker: hoisted
+injectWorkspacePackages: true
 
 # Match the lifecycle-script allowlist reviewed by the upstream repository.
 allowBuilds:

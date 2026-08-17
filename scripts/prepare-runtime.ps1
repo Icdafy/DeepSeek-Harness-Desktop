@@ -110,7 +110,7 @@ if (-not (Test-Path -LiteralPath $pnpmCommand -PathType Leaf)) {
 $env:Path = "$runtimeDirectory;$(Join-Path $repositoryRoot 'node_modules\.bin');$env:Path"
 Push-Location -LiteralPath $repositoryRoot
 try {
-    & $pnpmCommand --filter '@deepseek-harness/desktop-runtime' deploy --prod --legacy $deployDirectory
+    & $pnpmCommand --filter '@deepseek-harness/desktop-runtime' deploy --prod $deployDirectory
     if ($LASTEXITCODE -ne 0) {
         throw "pnpm deploy failed with exit code $LASTEXITCODE"
     }
@@ -126,6 +126,12 @@ if (-not (Test-Path -LiteralPath $deployedDsh -PathType Leaf)) {
 }
 if (-not (Test-Path -LiteralPath $deployedPnpm -PathType Leaf)) {
     throw "The deployed runtime is missing pnpm: $deployedPnpm"
+}
+
+$runtimeLinks = @(Get-ChildItem -LiteralPath $deployDirectory -Recurse -Force -Attributes ReparsePoint -ErrorAction SilentlyContinue)
+if ($runtimeLinks.Count -ne 0) {
+    $examples = ($runtimeLinks | Select-Object -First 3 -ExpandProperty FullName) -join ', '
+    throw "The deployed runtime contains non-portable filesystem links: $examples"
 }
 
 Write-Host "Runtime ready: Node.js $nodeReportedVersion, DeepSeek Harness 0.1.0-rc.6"
