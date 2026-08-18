@@ -13,8 +13,8 @@
 
 前往 [Releases](https://github.com/Icdafy/DeepSeek-Harness-Desktop/releases/latest) 下载 Windows x64 版本：
 
-- `DeepSeek-Harness-Setup-0.0.3-x64.exe`：标准安装器，支持选择安装目录、桌面快捷方式和卸载。
-- `DeepSeek-Harness-Portable-0.0.3-x64.exe`：免安装便携版。
+- `DeepSeek-Harness-Setup-0.0.4-x64.exe`：标准安装器，支持选择安装目录、桌面快捷方式和卸载。
+- `DeepSeek-Harness-Portable-0.0.4-x64.exe`：免安装便携版。
 - `SHA256SUMS.txt`：发布文件的 SHA-256 校验值。
 
 本版本尚未使用商业代码签名证书，Windows SmartScreen 可能显示未知发布者。请只从本仓库 Releases 下载，并核对 SHA-256。
@@ -26,7 +26,7 @@
 3. 在 **Settings → Models** 中配置模型供应商和 API Key。
 4. 选择工作目录后开始使用。
 
-应用只监听 `127.0.0.1`，每次启动由操作系统分配空闲端口，不会把 Harness 服务暴露到局域网。关闭桌面窗口时，本地服务会一并退出。
+应用只监听 `127.0.0.1`，首次启动时选择一个空闲端口并保存供后续启动复用，使基于浏览器来源保存的界面配置持续有效；若该端口临时被占用，本次启动会自动回退到其他空闲端口。服务不会暴露到局域网，关闭桌面窗口时会一并退出。
 
 ## 桌面能力
 
@@ -40,6 +40,7 @@
 - 内置 Aqua 透明 UI 插件，提供可切换的磨砂玻璃主题、动态背景和壁纸设置。
 - 白底鲸鱼图标采用透明圆角过渡，更适合 Windows 桌面与任务栏显示。
 - **Settings → General → 自动接收桌面更新** 可独立开启或关闭 GitHub Releases 更新，并支持手动检查。
+- 外观设置、壁纸数据以及窗口尺寸、位置和最大化状态会在退出后保留，下次启动自动恢复。
 
 > v0.0.1 尚未包含更新模块，因此现有 v0.0.1 用户需要手动安装 v0.0.2 一次；从 v0.0.2 开始，已开启该选项的客户端会自动接收后续正式 Release。
 
@@ -50,7 +51,7 @@
 ```text
 %APPDATA%\DeepSeek Harness\
 ├── dsh-home\
-├── desktop-settings.json
+├── desktop-settings.json   # 更新偏好、稳定服务端口和窗口状态
 └── logs\desktop.log
 ```
 

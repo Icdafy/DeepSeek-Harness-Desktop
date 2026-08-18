@@ -1,6 +1,6 @@
 {
   "name": "deepseek-harness-desktop",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "A native Windows desktop wrapper for DeepSeek Harness",
   "private": true,
   "license": "MIT",

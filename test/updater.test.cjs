@@ -3,7 +3,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const { EventEmitter } = require("node:events");
-const { mkdtempSync, readFileSync, rmSync } = require("node:fs");
+const { mkdtempSync, readFileSync, rmSync, writeFileSync } = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
 const { createUpdateController, readEnabled, writeEnabled } = require("../electron/updater.cjs");
@@ -18,6 +18,21 @@ test("desktop update preference defaults on and persists both states", () => {
     writeEnabled(settings, true);
     assert.equal(readEnabled(settings, () => {}), true);
     assert.deepEqual(JSON.parse(readFileSync(settings, "utf8")), { autoUpdateEnabled: true });
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+test("desktop update preference preserves unrelated desktop settings", () => {
+  const directory = mkdtempSync(path.join(os.tmpdir(), "dsh-updater-"));
+  const settings = path.join(directory, "desktop-settings.json");
+  try {
+    writeFileSync(settings, '{"harnessPort":43123}\n', "utf8");
+    writeEnabled(settings, false);
+    assert.deepEqual(JSON.parse(readFileSync(settings, "utf8")), {
+      harnessPort: 43123,
+      autoUpdateEnabled: false,
+    });
   } finally {
     rmSync(directory, { recursive: true, force: true });
   }

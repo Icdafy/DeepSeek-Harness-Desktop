@@ -8,6 +8,7 @@ const {
   ipcMain,
   nativeImage,
   nativeTheme,
+  screen,
   session,
   shell,
 } = require("electron");
@@ -25,6 +26,7 @@ const {
   writeFileSync,
 } = require("node:fs");
 const path = require("node:path");
+const net = require("node:net");
 const {
   extractHarnessUrl,
   isAllowedAppNavigation,
@@ -32,6 +34,12 @@ const {
   prependPath,
 } = require("./runtime-utils.cjs");
 const { createUpdateController } = require("./updater.cjs");
+const {
+  readHarnessPort,
+  readWindowState,
+  writeHarnessPort,
+  writeWindowState,
+} = require("./settings.cjs");
 
 // GUI launches may outlive their parent console. Ignore closed-pipe errors so
 // logging cannot become a recursive uncaught-exception loop.
@@ -71,6 +79,7 @@ let harnessUrl = null;
 let quitting = false;
 let logFile = null;
 let updateController = null;
+let windowStateTimer = null;
 
 function ensureDirectory(directory) {
   mkdirSync(directory, { recursive: true });
@@ -314,6 +323,50 @@ function dshHomePath() {
   return ensureDirectory(path.join(app.getPath("userData"), "dsh-home"));
 }
 
+function desktopSettingsPath() {
+  return path.join(app.getPath("userData"), "desktop-settings.json");
+}
+
+function findAvailablePort(preferredPort = 0) {
+  return new Promise((resolve, reject) => {
+    const server = net.createServer();
+    server.unref();
+    server.once("error", reject);
+    server.listen({ host: "127.0.0.1", port: preferredPort, exclusive: true }, () => {
+      const address = server.address();
+      const port = typeof address === "object" && address ? address.port : null;
+      server.close((error) => {
+        if (error) reject(error);
+        else if (port) resolve(port);
+        else reject(new Error("Unable to allocate a loopback port"));
+      });
+    });
+  });
+}
+
+async function resolveHarnessPort() {
+  const settingsFile = desktopSettingsPath();
+  const savedPort = readHarnessPort(settingsFile, log);
+  if (savedPort) {
+    try {
+      await findAvailablePort(savedPort);
+      return savedPort;
+    } catch (error) {
+      const fallbackPort = await findAvailablePort();
+      log(
+        "warn",
+        `Saved Harness port ${savedPort} is unavailable (${error.message}); using temporary port ${fallbackPort}`,
+      );
+      return fallbackPort;
+    }
+  }
+
+  const port = await findAvailablePort();
+  writeHarnessPort(settingsFile, port, log);
+  log("info", `Saved stable Harness port ${port}`);
+  return port;
+}
+
 function consumeLines(stream, callback) {
   let pending = "";
   stream.setEncoding("utf8");
@@ -353,17 +406,17 @@ async function waitForHttp(url) {
   );
 }
 
-function startHarness() {
+async function startHarness() {
   if (harnessProcess && harnessProcess.exitCode === null && harnessUrl) {
-    return Promise.resolve(harnessUrl);
+    return harnessUrl;
   }
 
   const paths = runtimePaths();
   if (!existsSync(paths.node)) {
-    return Promise.reject(new Error(`Bundled Node.js runtime is missing: ${paths.node}`));
+    throw new Error(`Bundled Node.js runtime is missing: ${paths.node}`);
   }
   if (!existsSync(paths.dsh)) {
-    return Promise.reject(new Error(`DeepSeek Harness runtime is missing: ${paths.dsh}`));
+    throw new Error(`DeepSeek Harness runtime is missing: ${paths.dsh}`);
   }
 
   const home = dshHomePath();
@@ -381,8 +434,10 @@ function startHarness() {
     ensureDesktopUpdaterPlugin(home, paths, environment);
     ensureAquaPlugin(home, paths, environment);
   } catch (error) {
-    return Promise.reject(error);
+    throw error;
   }
+
+  const port = await resolveHarnessPort();
 
   log("info", `Starting Harness with data directory ${home}`);
 
@@ -401,7 +456,7 @@ function startHarness() {
         "--host",
         "127.0.0.1",
         "--port",
-        "0",
+        String(port),
       ],
       {
         cwd: home,
@@ -524,11 +579,39 @@ function openExternal(targetUrl) {
   }
 }
 
+function savedWindowState() {
+  const state = readWindowState(desktopSettingsPath(), log);
+  if (!state) return null;
+  const visible = screen.getAllDisplays().some(({ workArea }) => {
+    const horizontal = Math.min(state.bounds.x + state.bounds.width, workArea.x + workArea.width) -
+      Math.max(state.bounds.x, workArea.x);
+    const vertical = Math.min(state.bounds.y + state.bounds.height, workArea.y + workArea.height) -
+      Math.max(state.bounds.y, workArea.y);
+    return horizontal >= 100 && vertical >= 100;
+  });
+  return visible ? state : null;
+}
+
+function saveWindowState() {
+  if (!mainWindow || mainWindow.isDestroyed() || mainWindow.isMinimized()) return;
+  writeWindowState(desktopSettingsPath(), {
+    bounds: mainWindow.getNormalBounds(),
+    maximized: mainWindow.isMaximized(),
+  }, log);
+}
+
+function scheduleWindowStateSave() {
+  clearTimeout(windowStateTimer);
+  windowStateTimer = setTimeout(saveWindowState, 250);
+}
+
 function createWindow() {
   const dark = nativeTheme.shouldUseDarkColors;
+  const windowState = savedWindowState();
   mainWindow = new BrowserWindow({
-    width: 1440,
-    height: 960,
+    width: windowState?.bounds.width ?? 1440,
+    height: windowState?.bounds.height ?? 960,
+    ...(windowState ? { x: windowState.bounds.x, y: windowState.bounds.y } : {}),
     minWidth: 960,
     minHeight: 640,
     show: false,
@@ -563,7 +646,18 @@ function createWindow() {
   });
 
   mainWindow.webContents.on("will-attach-webview", (event) => event.preventDefault());
-  mainWindow.once("ready-to-show", () => mainWindow?.show());
+  mainWindow.once("ready-to-show", () => {
+    if (windowState?.maximized) mainWindow?.maximize();
+    mainWindow?.show();
+  });
+  mainWindow.on("move", scheduleWindowStateSave);
+  mainWindow.on("resize", scheduleWindowStateSave);
+  mainWindow.on("maximize", scheduleWindowStateSave);
+  mainWindow.on("unmaximize", scheduleWindowStateSave);
+  mainWindow.on("close", () => {
+    clearTimeout(windowStateTimer);
+    saveWindowState();
+  });
   mainWindow.on("closed", () => {
     mainWindow = null;
   });

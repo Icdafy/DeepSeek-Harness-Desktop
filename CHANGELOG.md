@@ -2,6 +2,14 @@
 
 All notable changes to DeepSeek Harness are documented here.
 
+## [0.0.4] - 2026-08-18
+
+### Fixed
+
+- Keep a stable per-user loopback origin so Aqua appearance choices, wallpaper data, and other browser-local UI preferences survive application restarts.
+- Restore the previous window size, position, and maximized state while rejecting geometry that is no longer visible on a connected display.
+- Preserve unrelated desktop settings when the automatic-update preference is changed.
+
 ## [0.0.3] - 2026-08-18
 
 ### Added
@@ -41,3 +49,4 @@ All notable changes to DeepSeek Harness are documented here.
 [0.0.1]: https://github.com/Icdafy/DeepSeek-Harness-Desktop/releases/tag/v0.0.1
 [0.0.2]: https://github.com/Icdafy/DeepSeek-Harness-Desktop/releases/tag/v0.0.2
 [0.0.3]: https://github.com/Icdafy/DeepSeek-Harness-Desktop/releases/tag/v0.0.3
+[0.0.4]: https://github.com/Icdafy/DeepSeek-Harness-Desktop/releases/tag/v0.0.4

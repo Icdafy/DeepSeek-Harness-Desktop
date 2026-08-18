@@ -1,25 +1,16 @@
 "use strict";
 
-const { existsSync, readFileSync, renameSync, writeFileSync } = require("node:fs");
 const path = require("node:path");
+const { readDesktopSettings, updateDesktopSettings } = require("./settings.cjs");
 
 const CHECK_INTERVAL_MS = 6 * 60 * 60 * 1000;
 
 function readEnabled(settingsFile, log) {
-  if (!existsSync(settingsFile)) return true;
-  try {
-    const value = JSON.parse(readFileSync(settingsFile, "utf8"));
-    return value.autoUpdateEnabled !== false;
-  } catch (error) {
-    log("warn", `Ignoring invalid desktop settings: ${error.message}`);
-    return true;
-  }
+  return readDesktopSettings(settingsFile, log).autoUpdateEnabled !== false;
 }
 
 function writeEnabled(settingsFile, enabled) {
-  const temporary = `${settingsFile}.tmp`;
-  writeFileSync(temporary, `${JSON.stringify({ autoUpdateEnabled: enabled }, null, 2)}\n`, "utf8");
-  renameSync(temporary, settingsFile);
+  updateDesktopSettings(settingsFile, { autoUpdateEnabled: enabled });
 }
 
 function createUpdateController({ app, autoUpdater, dialog, log, getWindow }) {
