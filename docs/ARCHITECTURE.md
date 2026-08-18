@@ -12,6 +12,7 @@ flowchart LR
     R --> W
     G["GitHub Releases"] -->|"latest.yml + SHA-512 digest"| E
     E --> P["User-scoped updater plugin"]
+    E --> A["Bundled Aqua UI plugin"]
     D --> H["User-scoped dsh-home"]
     E --> L["Rotating desktop log"]
 ```
@@ -35,6 +36,8 @@ Program files are read-only at runtime. Harness data is placed under Electron's 
 
 The desktop updater itself is an Electron main-process service backed by `electron-updater`. A narrow preload bridge exposes only update state, the enabled preference, and a manual check command. A bundled Harness plugin renders these controls in General Settings. Checks start ten seconds after launch and repeat every six hours when enabled; downloaded updates can install immediately or on exit.
 
+The Aqua transparent UI package is pinned in the production runtime. On startup, the desktop main process copies its runtime files into the Web profile and registers the local package with `dsh plugin --offline`, so first use and version upgrades never depend on npm or GitHub availability.
+
 ## Security choices
 
 - Loopback binding and an ephemeral port minimize network exposure and port collisions.
@@ -47,4 +50,4 @@ The desktop updater itself is an Electron main-process service backed by `electr
 
 ## Release integrity
 
-Each tag build runs tests, performs a packaged portable-app smoke test, and publishes SHA-256 hashes plus electron-updater metadata and an NSIS blockmap. GitHub also attaches source archives generated from the release tag. v0.0.2 is unsigned; future production releases should add Authenticode signing without weakening checksum publication.
+Each tag build runs tests, performs a packaged portable-app smoke test, and publishes SHA-256 hashes plus electron-updater metadata and an NSIS blockmap. GitHub also attaches source archives generated from the release tag. Current releases are unsigned; future production releases should add Authenticode signing without weakening checksum publication.

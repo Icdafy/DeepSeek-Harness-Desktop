@@ -23,3 +23,6 @@ allowBuilds:
   node-addon-require-builtin: false
   electron-winstaller: false
   electron: true
+
+minimumReleaseAgeExclude:
+  - dsh-client-ui-aqua@1.3.1

@@ -35,6 +35,14 @@ SOFTWARE.
 
 The application icon uses the official DeepSeek GitHub organization artwork at <https://github.com/deepseek-ai>. DeepSeek's name, whale logo, and related marks belong to their respective owner; their use identifies compatibility with the bundled upstream project and does not imply endorsement.
 
+## Aqua transparent UI plugin
+
+- Project: <https://github.com/WYH66666666/DSH-Transparent-UI-Plugin>
+- Bundled package: `dsh-client-ui-aqua@1.3.1`
+- License: MIT
+
+The package retains its own `LICENSE` file in the bundled runtime.
+
 ## Other bundled software
 
 The distribution also contains Electron, electron-updater, Node.js, pnpm, and the transitive npm dependencies of DeepSeek Harness. Their package metadata and license files are retained in the packaged runtime. Node.js and Electron also ship their own license and third-party notice files in the executable distribution.

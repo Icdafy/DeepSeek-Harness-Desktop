@@ -1,12 +1,13 @@
 {
   "name": "@deepseek-harness/desktop-runtime",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "private": true,
   "description": "Production runtime bundled into DeepSeek Harness",
   "license": "MIT",
   "dependencies": {
-    "@deepseek-harness/desktop-updater": "workspace:*",
     "@deepseek-ai/dsh": "0.1.0-rc.6",
+    "@deepseek-harness/desktop-updater": "workspace:*",
+    "dsh-client-ui-aqua": "1.3.1",
     "pnpm": "11.22.0"
   }
 }

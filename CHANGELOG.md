@@ -2,6 +2,16 @@
 
 All notable changes to DeepSeek Harness are documented here.
 
+## [0.0.3] - 2026-08-18
+
+### Added
+
+- Bundled `dsh-client-ui-aqua@1.3.1` and install it offline into the Web profile so the Aqua transparent UI is available out of the box.
+
+### Changed
+
+- Reworked the white application-icon tile with transparent rounded corners instead of a square background.
+
 ## [0.0.2] - 2026-08-17
 
 ### Added
@@ -30,3 +40,4 @@ All notable changes to DeepSeek Harness are documented here.
 
 [0.0.1]: https://github.com/Icdafy/DeepSeek-Harness-Desktop/releases/tag/v0.0.1
 [0.0.2]: https://github.com/Icdafy/DeepSeek-Harness-Desktop/releases/tag/v0.0.2
+[0.0.3]: https://github.com/Icdafy/DeepSeek-Harness-Desktop/releases/tag/v0.0.3

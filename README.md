@@ -13,8 +13,8 @@
 
 前往 [Releases](https://github.com/Icdafy/DeepSeek-Harness-Desktop/releases/latest) 下载 Windows x64 版本：
 
-- `DeepSeek-Harness-Setup-0.0.2-x64.exe`：标准安装器，支持选择安装目录、桌面快捷方式和卸载。
-- `DeepSeek-Harness-Portable-0.0.2-x64.exe`：免安装便携版。
+- `DeepSeek-Harness-Setup-0.0.3-x64.exe`：标准安装器，支持选择安装目录、桌面快捷方式和卸载。
+- `DeepSeek-Harness-Portable-0.0.3-x64.exe`：免安装便携版。
 - `SHA256SUMS.txt`：发布文件的 SHA-256 校验值。
 
 本版本尚未使用商业代码签名证书，Windows SmartScreen 可能显示未知发布者。请只从本仓库 Releases 下载，并核对 SHA-256。
@@ -37,6 +37,8 @@
 - 外部链接交给系统浏览器，应用窗口只允许访问当前本地 Harness 来源。
 - 使用 DeepSeek 官方黑色鲸鱼图标，应用名称统一为 **DeepSeek Harness**。
 - 隐藏原生菜单栏，自绘标题区会跟随浅色、深色或系统主题。
+- 内置 Aqua 透明 UI 插件，提供可切换的磨砂玻璃主题、动态背景和壁纸设置。
+- 白底鲸鱼图标采用透明圆角过渡，更适合 Windows 桌面与任务栏显示。
 - **Settings → General → 自动接收桌面更新** 可独立开启或关闭 GitHub Releases 更新，并支持手动检查。
 
 > v0.0.1 尚未包含更新模块，因此现有 v0.0.1 用户需要手动安装 v0.0.2 一次；从 v0.0.2 开始，已开启该选项的客户端会自动接收后续正式 Release。

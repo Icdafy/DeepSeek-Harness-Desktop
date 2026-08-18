@@ -89,7 +89,7 @@ window.__ModuleLoader__.load({
       const bridge = globalThis.deepseekHarnessDesktop?.updates;
       const [state, setState] = React.useState({
         enabled: true,
-        currentVersion: "0.0.2",
+        currentVersion: "0.0.3",
         status: bridge ? "idle" : "development",
       });
       const [saving, setSaving] = React.useState(false);

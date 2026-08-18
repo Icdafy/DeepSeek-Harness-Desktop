@@ -33,6 +33,9 @@ importers:
       '@deepseek-harness/desktop-updater':
         specifier: workspace:*
         version: link:../desktop-updater
+      dsh-client-ui-aqua:
+        specifier: 1.3.1
+        version: 1.3.1(96c2943d0d888088dff655f48420bd76)
       pnpm:
         specifier: 11.22.0
         version: 11.22.0
@@ -3141,6 +3144,20 @@ packages:
   dotenv@16.6.1:
     resolution: {integrity: sha512-uBq4egWHTcTt33a72vpSG0z3HnPuIl6NqYcTrKEg2azoEyl2hpW0zqlxysq2pK9HlDIHyHyakeYaYnSAwd8bow==}
     engines: {node: '>=12'}
+
+  dsh-client-ui-aqua@1.3.1:
+    resolution: {integrity: sha512-iPQgMzwAA1wQJCnDaz8yYyKgviScuMyi3gInFjQMSyf08tIyx83mFJ1zA2w7fhB3waZr27nz0Am6Fj5GJTIPMQ==}
+    peerDependencies:
+      '@deepseek-ai/cordis': ^4.0.1
+      '@deepseek-ai/dsh-client-locale': ^0.1.0-rc.5
+      '@deepseek-ai/dsh-client-runtime': ^0.1.0-rc.5
+      '@deepseek-ai/dsh-client-ui-primitives': ^0.1.0-rc.5
+      '@deepseek-ai/dsh-client-ui-settings': ^0.1.0-rc.5
+      '@deepseek-ai/dsh-client-ui-settings-plugins': ^0.1.0-rc.5
+      '@deepseek-ai/dsh-client-ui-slots': ^0.1.0-rc.5
+      '@deepseek-ai/dsh-client-ui-theme': ^0.1.0-rc.5
+      '@deepseek-ai/dsh-invariants': ^0.1.0-rc.5
+      react: ^18.2.0
 
   dunder-proto@1.0.1:
     resolution: {integrity: sha512-KIN/nDJBQRcXw0MLVhZE9iQHmG68qAVIBg9CqmUYjmQIhgij9U5MFvrqkUL5FbtyyzZuOeOt0zdeRe4UY7ct+A==}
@@ -8283,6 +8300,19 @@ snapshots:
       dotenv: 16.6.1
 
   dotenv@16.6.1: {}
+
+  dsh-client-ui-aqua@1.3.1(96c2943d0d888088dff655f48420bd76):
+    dependencies:
+      '@deepseek-ai/cordis': 4.0.1(@deepseek-ai/cordis-plugin-include@1.0.6)(@deepseek-ai/cordis-plugin-loader@1.0.2)
+      '@deepseek-ai/dsh-client-locale': 0.1.0-rc.6(ba90cd718801fed7ddde55874c19665e)
+      '@deepseek-ai/dsh-client-runtime': 0.1.0-rc.6(2d7345022ac216fbbde6bcd7e74d4a25)
+      '@deepseek-ai/dsh-client-ui-primitives': 0.1.0-rc.6(@deepseek-ai/cordis@4.0.1)(@deepseek-ai/dsh-invariants@0.1.0-rc.6(@deepseek-ai/cordis@4.0.1))(supports-color@7.2.0)
+      '@deepseek-ai/dsh-client-ui-settings': 0.1.0-rc.6(@deepseek-ai/cordis@4.0.1)(@deepseek-ai/dsh-api-remotes@0.1.0-rc.6(963f21f11cddd09def26a2473cddd8c5))(@deepseek-ai/dsh-client-connection@0.1.0-rc.6)(@deepseek-ai/dsh-client-runtime@0.1.0-rc.6(2d7345022ac216fbbde6bcd7e74d4a25))(@deepseek-ai/dsh-client-schema-form@0.1.0-rc.6(@deepseek-ai/cordis@4.0.1)(@deepseek-ai/dsh-invariants@0.1.0-rc.6(@deepseek-ai/cordis@4.0.1)))(@deepseek-ai/dsh-client-ui-slots@0.1.0-rc.6(@deepseek-ai/cordis@4.0.1)(@deepseek-ai/dsh-invariants@0.1.0-rc.6(@deepseek-ai/cordis@4.0.1)))(@deepseek-ai/dsh-invariants@0.1.0-rc.6(@deepseek-ai/cordis@4.0.1))(@deepseek-ai/dsh-settings@0.1.0-rc.6(@deepseek-ai/cordis@4.0.1)(@deepseek-ai/dsh-brand@0.1.0-rc.6(@deepseek-ai/cordis@4.0.1)(@deepseek-ai/dsh-invariants@0.1.0-rc.6(@deepseek-ai/cordis@4.0.1)))(@deepseek-ai/dsh-invariants@0.1.0-rc.6(@deepseek-ai/cordis@4.0.1))(@deepseek-ai/schemastery@3.18.1))(react@18.3.1)
+      '@deepseek-ai/dsh-client-ui-settings-plugins': 0.1.0-rc.6(ec1c6beacc490e5126a2a52f24f8f2f1)
+      '@deepseek-ai/dsh-client-ui-slots': 0.1.0-rc.6(@deepseek-ai/cordis@4.0.1)(@deepseek-ai/dsh-invariants@0.1.0-rc.6(@deepseek-ai/cordis@4.0.1))
+      '@deepseek-ai/dsh-client-ui-theme': 0.1.0-rc.6(eea6b229d05e17ae0897a173edd1914d)
+      '@deepseek-ai/dsh-invariants': 0.1.0-rc.6(@deepseek-ai/cordis@4.0.1)
+      react: 18.3.1
 
   dunder-proto@1.0.1:
     dependencies:

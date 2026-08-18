@@ -146,6 +146,12 @@ function runtimePaths() {
 function desktopIntegrationPaths() {
   if (app.isPackaged) {
     return {
+      aqua: path.join(
+        process.resourcesPath,
+        "harness",
+        "node_modules",
+        "dsh-client-ui-aqua",
+      ),
       icon: path.join(process.resourcesPath, "desktop", "icon.png"),
       patch: path.join(
         process.resourcesPath,
@@ -167,6 +173,7 @@ function desktopIntegrationPaths() {
 
   const root = app.getAppPath();
   return {
+    aqua: path.join(root, "node_modules", "dsh-client-ui-aqua"),
     icon: path.join(root, "build", "icon.png"),
     patch: path.join(root, "desktop-updater", "cordis.patch.yml"),
     plugin: path.join(root, "desktop-updater"),
@@ -235,6 +242,70 @@ function ensureDesktopUpdaterPlugin(home, paths, environment) {
   if (result.status !== 0) {
     throw new Error(
       `Unable to install desktop updater plugin: ${(result.stderr || result.stdout || "unknown error").trim()}`,
+    );
+  }
+}
+
+function ensureAquaPlugin(home, paths, environment) {
+  const source = desktopIntegrationPaths().aqua;
+  const sourceVersion = readJson(path.join(source, "package.json"))?.version;
+  if (!sourceVersion) {
+    throw new Error(`Bundled Aqua plugin is missing or invalid: ${source}`);
+  }
+
+  const target = ensureDirectory(path.join(home, "profiles", "web", "plugins", "ui-aqua"));
+  ensureDirectory(path.join(target, "lib"));
+  for (const relative of [
+    "package.json",
+    "cordis.patch.yml",
+    path.join("lib", "index.js"),
+    path.join("lib", "invariant.js"),
+    path.join("lib", "client.js"),
+  ]) {
+    const sourceFile = path.join(source, relative);
+    if (!existsSync(sourceFile)) {
+      throw new Error(`Aqua plugin file is missing: ${sourceFile}`);
+    }
+    copyFileSync(sourceFile, path.join(target, relative));
+  }
+
+  const installedManifest = path.join(
+    home,
+    "profiles",
+    "web",
+    "node_modules",
+    "dsh-client-ui-aqua",
+    "package.json",
+  );
+  if (readJson(installedManifest)?.version === sourceVersion) return;
+
+  log("info", `Installing Aqua transparent UI plugin v${sourceVersion}`);
+  const result = spawnSync(
+    paths.node,
+    [
+      paths.dsh,
+      "plugin",
+      "--profile",
+      "web",
+      "add",
+      "--offline",
+      "file:plugins/ui-aqua",
+    ],
+    {
+      cwd: home,
+      env: environment,
+      windowsHide: true,
+      encoding: "utf8",
+      timeout: STARTUP_TIMEOUT_MS,
+    },
+  );
+  if (result.status !== 0) {
+    const detail = [result.stderr, result.stdout]
+      .map((value) => value?.trim())
+      .filter(Boolean)
+      .join("\n");
+    throw new Error(
+      `Unable to install Aqua transparent UI plugin: ${detail || "unknown error"}`,
     );
   }
 }
@@ -308,6 +379,7 @@ function startHarness() {
 
   try {
     ensureDesktopUpdaterPlugin(home, paths, environment);
+    ensureAquaPlugin(home, paths, environment);
   } catch (error) {
     return Promise.reject(error);
   }
