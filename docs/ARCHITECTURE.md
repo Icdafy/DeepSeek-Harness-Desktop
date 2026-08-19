@@ -13,6 +13,7 @@ flowchart LR
     G["GitHub Releases"] -->|"latest.yml + SHA-512 digest"| E
     E --> P["User-scoped updater plugin"]
     E --> A["Bundled Aqua UI plugin"]
+    E --> C["Bundled direct-chat plugin"]
     D --> H["User-scoped dsh-home"]
     E --> L["Rotating desktop log"]
 ```
@@ -37,6 +38,8 @@ Program files are read-only at runtime. Harness data is placed under Electron's 
 The desktop updater itself is an Electron main-process service backed by `electron-updater`. A narrow preload bridge exposes only update state, the enabled preference, and a manual check command. A bundled Harness plugin renders these controls in General Settings. Checks start ten seconds after launch and repeat every six hours when enabled; downloaded updates can install immediately or on exit.
 
 The Aqua transparent UI package is pinned in the production runtime. On startup, the desktop main process copies its runtime files into the Web profile and registers the local package with `dsh plugin --offline`, so first use and version upgrades never depend on npm or GitHub availability.
+
+The direct-chat plugin follows the same offline deployment path. A pinned patch renders the upstream `sidebar.footer.action` slot immediately after the workspace browser instead of inside the bottom footer; the plugin registers its workspace-style chat section there, while Settings stays pinned to the bottom. New Chat calls the Sessions runtime with an empty payload; the Harness Host then creates a real session in its default directory. A direct-chat composer takeover removes the upstream blank-session workspace lock while retaining the same session input machine, prompt pipeline, transcript, and configured model.
 
 ## Security choices
 

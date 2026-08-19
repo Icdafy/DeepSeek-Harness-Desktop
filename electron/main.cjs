@@ -170,12 +170,27 @@ function desktopIntegrationPaths() {
         "desktop-updater",
         "cordis.patch.yml",
       ),
+      chatPatch: path.join(
+        process.resourcesPath,
+        "harness",
+        "node_modules",
+        "@deepseek-harness",
+        "desktop-chat",
+        "cordis.patch.yml",
+      ),
       plugin: path.join(
         process.resourcesPath,
         "harness",
         "node_modules",
         "@deepseek-harness",
         "desktop-updater",
+      ),
+      chatPlugin: path.join(
+        process.resourcesPath,
+        "harness",
+        "node_modules",
+        "@deepseek-harness",
+        "desktop-chat",
       ),
     };
   }
@@ -185,7 +200,9 @@ function desktopIntegrationPaths() {
     aqua: path.join(root, "node_modules", "dsh-client-ui-aqua"),
     icon: path.join(root, "build", "icon.png"),
     patch: path.join(root, "desktop-updater", "cordis.patch.yml"),
+    chatPatch: path.join(root, "desktop-chat", "cordis.patch.yml"),
     plugin: path.join(root, "desktop-updater"),
+    chatPlugin: path.join(root, "desktop-chat"),
   };
 }
 
@@ -251,6 +268,64 @@ function ensureDesktopUpdaterPlugin(home, paths, environment) {
   if (result.status !== 0) {
     throw new Error(
       `Unable to install desktop updater plugin: ${(result.stderr || result.stdout || "unknown error").trim()}`,
+    );
+  }
+}
+
+function ensureDesktopChatPlugin(home, paths, environment) {
+  const source = desktopIntegrationPaths().chatPlugin;
+  const target = ensureDirectory(path.join(home, "profiles", "web", "plugins", "desktop-chat"));
+  ensureDirectory(path.join(target, "lib"));
+
+  for (const relative of [
+    "package.json",
+    "cordis.patch.yml",
+    path.join("lib", "index.js"),
+    path.join("lib", "client.js"),
+  ]) {
+    const sourceFile = path.join(source, relative);
+    if (!existsSync(sourceFile)) {
+      throw new Error(`Desktop chat plugin file is missing: ${sourceFile}`);
+    }
+    copyFileSync(sourceFile, path.join(target, relative));
+  }
+
+  const sourceVersion = readJson(path.join(source, "package.json"))?.version;
+  const installedManifest = path.join(
+    home,
+    "profiles",
+    "web",
+    "node_modules",
+    "@deepseek-harness",
+    "desktop-chat",
+    "package.json",
+  );
+  const installedVersion = readJson(installedManifest)?.version;
+  if (sourceVersion && installedVersion === sourceVersion) return;
+
+  log("info", `Installing desktop chat plugin v${sourceVersion ?? "unknown"}`);
+  const result = spawnSync(
+    paths.node,
+    [
+      paths.dsh,
+      "plugin",
+      "--profile",
+      "web",
+      "add",
+      "--offline",
+      "file:plugins/desktop-chat",
+    ],
+    {
+      cwd: home,
+      env: environment,
+      windowsHide: true,
+      encoding: "utf8",
+      timeout: STARTUP_TIMEOUT_MS,
+    },
+  );
+  if (result.status !== 0) {
+    throw new Error(
+      `Unable to install desktop chat plugin: ${(result.stderr || result.stdout || "unknown error").trim()}`,
     );
   }
 }
@@ -432,6 +507,7 @@ async function startHarness() {
 
   try {
     ensureDesktopUpdaterPlugin(home, paths, environment);
+    ensureDesktopChatPlugin(home, paths, environment);
     ensureAquaPlugin(home, paths, environment);
   } catch (error) {
     throw error;
@@ -453,6 +529,8 @@ async function startHarness() {
         "web",
         "--patch",
         desktopIntegrationPaths().patch,
+        "--patch",
+        desktopIntegrationPaths().chatPatch,
         "--host",
         "127.0.0.1",
         "--port",

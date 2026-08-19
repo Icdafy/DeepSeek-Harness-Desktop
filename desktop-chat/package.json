@@ -1,8 +1,8 @@
 {
-  "name": "@deepseek-harness/desktop-updater",
+  "name": "@deepseek-harness/desktop-chat",
   "version": "0.0.5",
   "private": true,
-  "description": "DeepSeek Harness desktop update preference plugin",
+  "description": "DeepSeek Harness direct-chat sidebar plugin",
   "type": "module",
   "main": "./lib/index.js",
   "exports": {
@@ -15,8 +15,11 @@
     "client": {
       "inject": [
         "@deepseek-ai/dsh-client-runtime",
-        "@deepseek-ai/dsh-client-ui-settings",
-        "@deepseek-ai/dsh-client-ui-settings-general"
+        "@deepseek-ai/dsh-client-ui-conversation",
+        "@deepseek-ai/dsh-client-ui-primitives",
+        "@deepseek-ai/dsh-client-ui-settings-plugins",
+        "@deepseek-ai/dsh-client-ui-sidebar",
+        "@deepseek-ai/dsh-client-ui-slots"
       ],
       "platform": "web"
     }

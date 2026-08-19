@@ -2,6 +2,14 @@
 
 All notable changes to DeepSeek Harness are documented here.
 
+## [0.0.5] - 2026-08-19
+
+### Added
+
+- Added a bundled direct-chat plugin with a toggle in Settings → Plugins.
+- Added a Chat section below the workspace area in the sidebar, including a New Chat action that creates a workspace-less session and opens the normal model conversation view.
+- Persist recent direct-chat sessions locally so they remain available after restarting the app.
+
 ## [0.0.4] - 2026-08-18
 
 ### Fixed
@@ -50,3 +58,4 @@ All notable changes to DeepSeek Harness are documented here.
 [0.0.2]: https://github.com/Icdafy/DeepSeek-Harness-Desktop/releases/tag/v0.0.2
 [0.0.3]: https://github.com/Icdafy/DeepSeek-Harness-Desktop/releases/tag/v0.0.3
 [0.0.4]: https://github.com/Icdafy/DeepSeek-Harness-Desktop/releases/tag/v0.0.4
+[0.0.5]: https://github.com/Icdafy/DeepSeek-Harness-Desktop/releases/tag/v0.0.5
