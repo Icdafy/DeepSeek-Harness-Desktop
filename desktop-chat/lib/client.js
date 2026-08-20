@@ -37,6 +37,10 @@ window.__ModuleLoader__.load({
         flex-direction: column;
         padding-right: var(--dsh-chat-list-edge-inset);
       }
+      :has(> :last-child > .dsh-desktop-chat-root[data-wide="true"]) > :first-child > :first-child {
+        flex: 0 1 auto;
+        max-height: 58%;
+      }
       .dsh-desktop-chat-root[data-wide="false"] {
         width: 36px;
         max-height: none;

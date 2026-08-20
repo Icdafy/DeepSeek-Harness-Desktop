@@ -84,11 +84,11 @@ function findElement(element, predicate) {
   return undefined;
 }
 
-test("desktop chat plugin is bundled into the v0.0.6 runtime", () => {
-  assert.equal(readJson("package.json").version, "0.0.6");
-  assert.equal(readJson("runtime/package.json").version, "0.0.6");
-  assert.equal(readJson("desktop-chat/package.json").version, "0.0.6");
-  assert.equal(readJson("desktop-updater/package.json").version, "0.0.6");
+test("desktop chat plugin is bundled into the v0.0.7 runtime", () => {
+  assert.equal(readJson("package.json").version, "0.0.7");
+  assert.equal(readJson("runtime/package.json").version, "0.0.7");
+  assert.equal(readJson("desktop-chat/package.json").version, "0.0.7");
+  assert.equal(readJson("desktop-updater/package.json").version, "0.0.7");
   assert.equal(
     readJson("runtime/package.json").dependencies["@deepseek-harness/desktop-chat"],
     "workspace:*",
@@ -180,6 +180,14 @@ test("direct chats use the native workspace composer and stay out of workspace l
   assert.match(conversationPatch, /const inert = sessionId === void 0;/);
   assert.match(conversationPatch, /chipTitle !== void 0 && heroWorkspaceRow/);
   assert.match(workspacePatch, /DIRECT_CHAT_SESSION_IDS_KEY/);
+});
+
+test("direct chat section sits immediately below the workspace browser", () => {
+  const source = readFileSync(path.join(root, "desktop-chat", "lib", "client.js"), "utf8");
+  assert.match(
+    source,
+    /:has\(> :last-child > \.dsh-desktop-chat-root\[data-wide="true"\]\) > :first-child > :first-child \{[\s\S]*?flex: 0 1 auto;[\s\S]*?max-height: 58%;/,
+  );
 });
 
 test("desktop titlebar leaves only native Windows controls", () => {

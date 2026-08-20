@@ -2,6 +2,12 @@
 
 All notable changes to DeepSeek Harness are documented here.
 
+## [0.0.7] - 2026-08-20
+
+### Changed
+
+- Moved the direct-chat section up so it sits immediately below the workspace browser instead of being pushed to the bottom of the sidebar.
+
 ## [0.0.6] - 2026-08-20
 
 ### Changed
@@ -71,3 +77,4 @@ All notable changes to DeepSeek Harness are documented here.
 [0.0.4]: https://github.com/Icdafy/DeepSeek-Harness-Desktop/releases/tag/v0.0.4
 [0.0.5]: https://github.com/Icdafy/DeepSeek-Harness-Desktop/releases/tag/v0.0.5
 [0.0.6]: https://github.com/Icdafy/DeepSeek-Harness-Desktop/releases/tag/v0.0.6
+[0.0.7]: https://github.com/Icdafy/DeepSeek-Harness-Desktop/releases/tag/v0.0.7
