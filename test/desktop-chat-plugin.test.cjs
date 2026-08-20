@@ -16,19 +16,22 @@ function loadClientPlugin() {
   const source = readFileSync(path.join(root, "desktop-chat", "lib", "client.js"), "utf8");
   let plugin = null;
   const React = {
+    Fragment: Symbol("Fragment"),
     createElement: (type, props, ...children) => ({
       type,
       props: { ...(props ?? {}), children: children.length <= 1 ? children[0] : children },
     }),
     useCallback: (callback) => callback,
     useEffect: () => {},
+    useMemo: (factory) => factory(),
+    useRef: (value) => ({ current: value }),
     useState: (initial) => [typeof initial === "function" ? initial() : initial, () => {}],
     useSyncExternalStore: (_subscribe, getSnapshot) => getSnapshot(),
   };
   const browserRequire = (request) => {
     if (request === "react") return React;
     if (request === "@deepseek-ai/dsh-client-ui-primitives") {
-      return { IconNewChatOutline16: () => null };
+      return new Proxy({}, { get: () => () => null });
     }
     return require(request);
   };
@@ -81,11 +84,11 @@ function findElement(element, predicate) {
   return undefined;
 }
 
-test("desktop chat plugin is bundled into the v0.0.5 runtime", () => {
-  assert.equal(readJson("package.json").version, "0.0.5");
-  assert.equal(readJson("runtime/package.json").version, "0.0.5");
-  assert.equal(readJson("desktop-chat/package.json").version, "0.0.5");
-  assert.equal(readJson("desktop-updater/package.json").version, "0.0.5");
+test("desktop chat plugin is bundled into the v0.0.6 runtime", () => {
+  assert.equal(readJson("package.json").version, "0.0.6");
+  assert.equal(readJson("runtime/package.json").version, "0.0.6");
+  assert.equal(readJson("desktop-chat/package.json").version, "0.0.6");
+  assert.equal(readJson("desktop-updater/package.json").version, "0.0.6");
   assert.equal(
     readJson("runtime/package.json").dependencies["@deepseek-harness/desktop-chat"],
     "workspace:*",
@@ -94,10 +97,12 @@ test("desktop chat plugin is bundled into the v0.0.5 runtime", () => {
 
 test("desktop chat client registers settings and sidebar surfaces", () => {
   const plugin = loadClientPlugin();
-  assert.equal(plugin.inject.join(","), "slots,sessions");
+  assert.equal(plugin.inject.join(","), "slots,sessions,workspaces");
 
   const registrations = [];
   const ctx = {
+    sessions: {},
+    workspaces: {},
     slots: {
       inject: (name, register) => {
         const result = register();
@@ -111,7 +116,6 @@ test("desktop chat client registers settings and sidebar surfaces", () => {
   assert.deepEqual(registrations.map(({ name, id }) => ({ name, id })), [
     { name: "settings.plugin.item", id: "desktop-chat" },
     { name: "sidebar.footer.action", id: "desktop-chat" },
-    { name: "conversation.composer", id: "desktop-chat" },
   ]);
 });
 
@@ -133,12 +137,14 @@ test("new direct chat creates and opens a session without a workspace", async ()
   };
   const ctx = {
     sessions,
+    workspaces: { archiveSession: async () => ({ ok: true }) },
     slots: {
       inject: (name, register) => {
         const result = register();
         if (name === "sidebar.footer.action") {
           directChat = result.component;
           assert.equal(result.options.inject().sessions, sessions);
+          assert.equal(result.options.inject().workspaces, ctx.workspaces);
         }
       },
       register: (options, component) => ({ options, component }),
@@ -146,7 +152,7 @@ test("new direct chat creates and opens a session without a workspace", async ()
   };
   plugin.apply(ctx);
 
-  const rendered = directChat({ wide: true, sessions });
+  const rendered = directChat({ wide: true, sessions, workspaces: ctx.workspaces });
   const newChatButton = findElement(
     rendered,
     (element) => element?.type === "button" && element.props?.["aria-label"] === "新对话",
@@ -159,41 +165,31 @@ test("new direct chat creates and opens a session without a workspace", async ()
   assert.deepEqual(opened, ["direct-session-1"]);
 });
 
-test("direct chat composer sends through the current session input machine", () => {
-  const plugin = loadClientPlugin();
-  let composer = null;
-  const submitted = [];
-  const drafts = [];
-  const ctx = {
-    slots: {
-      inject: (name, register) => {
-        const result = register();
-        if (name === "conversation.composer") composer = result.component;
-      },
-      register: (options, component) => ({ options, component }),
-    },
-  };
-  plugin.apply(ctx);
-
-  const rendered = composer({
-    useInput: (selector) => selector({ draft: "你好", phase: "plain" }),
-    useSession: (selector) => selector({ running: false }),
-    inputActions: {
-      setDraft: (value) => drafts.push(value),
-      submit: () => submitted.push(true),
-    },
-  });
-  const input = findElement(rendered, (element) => element?.type === "textarea");
-  const send = findElement(
-    rendered,
-    (element) => element?.type === "button" && element.props?.["aria-label"] === "发送消息",
+test("direct chats use the native workspace composer and stay out of workspace lists", () => {
+  const source = readFileSync(path.join(root, "desktop-chat", "lib", "client.js"), "utf8");
+  const conversationPatch = readFileSync(
+    path.join(root, "patches", "@deepseek-ai__dsh-client-ui-conversation@0.1.0-rc.6.patch"),
+    "utf8",
   );
-  assert.ok(input);
-  assert.ok(send);
-  input.props.onChange({ target: { value: "下一条" } });
-  send.props.onClick();
-  assert.deepEqual(drafts, ["下一条"]);
-  assert.deepEqual(submitted, [true]);
+  const workspacePatch = readFileSync(
+    path.join(root, "patches", "@deepseek-ai__dsh-client-ui-workspace@0.1.0-rc.6.patch"),
+    "utf8",
+  );
+  assert.doesNotMatch(source, /conversation\.composer/);
+  assert.doesNotMatch(source, /dsh-desktop-chat-composer/);
+  assert.match(conversationPatch, /const inert = sessionId === void 0;/);
+  assert.match(conversationPatch, /chipTitle !== void 0 && heroWorkspaceRow/);
+  assert.match(workspacePatch, /DIRECT_CHAT_SESSION_IDS_KEY/);
+});
+
+test("desktop titlebar leaves only native Windows controls", () => {
+  const preload = readFileSync(path.join(root, "electron", "preload.cjs"), "utf8");
+  const main = readFileSync(path.join(root, "electron", "main.cjs"), "utf8");
+  assert.doesNotMatch(preload, /titlebar\.append\(icon, name\)/);
+  assert.doesNotMatch(preload, /border-bottom:/);
+  assert.match(preload, /backdrop-filter: blur\(18px\)/);
+  assert.match(main, /color: "#00000000"/);
+  assert.match(main, /session\.defaultSession\.clearCache\(\)/);
 });
 
 test("Electron installs the desktop chat plugin offline", () => {

@@ -34,40 +34,38 @@ function installTitlebar() {
       display: flex;
       align-items: center;
       height: var(--dsh-desktop-titlebar-height);
-      padding: 0 148px 0 12px;
+      padding: 0 148px 0 0;
       color: var(--dsw-alias-label-primary, #171717);
-      background: var(--dsw-alias-bg-layer-1, #f7f7f8);
-      border-bottom: 1px solid var(--dsw-alias-border-l1, rgba(127, 127, 127, .12));
-      font-family: Inter, "Segoe UI", sans-serif;
+      background: color-mix(in srgb, var(--dsw-alias-bg-layer-1, #f7f7f8) 88%, transparent);
+      border: 0;
+      box-shadow: 0 10px 24px -24px color-mix(in srgb, var(--dsw-alias-label-primary, #171717) 26%, transparent);
+      backdrop-filter: blur(18px) saturate(1.08);
       user-select: none;
     }
-    #dsh-desktop-titlebar img { width: 24px; height: 24px; margin-right: 8px; border-radius: 5px; }
-    #dsh-desktop-titlebar span { overflow: hidden; font-size: 13px; font-weight: 500; line-height: 20px; text-overflow: ellipsis; white-space: nowrap; }
   `;
   document.head.appendChild(style);
 
   const titlebar = document.createElement("div");
   titlebar.id = "dsh-desktop-titlebar";
-  const icon = document.createElement("img");
-  icon.alt = "";
-  const name = document.createElement("span");
-  name.textContent = "DeepSeek Harness";
-  titlebar.append(icon, name);
+  titlebar.setAttribute("aria-hidden", "true");
   document.body.prepend(titlebar);
 
-  ipcRenderer.invoke("desktop:get-window-metadata").then((metadata) => {
-    name.textContent = metadata.appName;
-    icon.src = metadata.iconDataUrl;
-  });
-
   let colorTimer = null;
+  const normalizeColor = (value) => {
+    const srgb = value.match(
+      /^color\(srgb\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)(?:\s*\/\s*([\d.]+))?\)$/i,
+    );
+    if (!srgb) return value;
+    const channel = (part) => Math.round(Math.min(1, Number(part)) * 255);
+    return `rgba(${channel(srgb[1])}, ${channel(srgb[2])}, ${channel(srgb[3])}, ${srgb[4] ?? 1})`;
+  };
   const syncColors = () => {
     clearTimeout(colorTimer);
     colorTimer = setTimeout(() => {
       const computed = getComputedStyle(titlebar);
       ipcRenderer.send("desktop:titlebar-colors", {
-        background: computed.backgroundColor,
-        foreground: computed.color,
+        background: "rgba(0, 0, 0, 0)",
+        foreground: normalizeColor(computed.color),
       });
     }, 50);
   };

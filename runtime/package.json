@@ -1,6 +1,6 @@
 {
   "name": "@deepseek-harness/desktop-runtime",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "private": true,
   "description": "Production runtime bundled into DeepSeek Harness",
   "license": "MIT",

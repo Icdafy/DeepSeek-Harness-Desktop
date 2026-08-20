@@ -1,0 +1,10 @@
+diff --git a/lib/client.js b/lib/client.js
+index 86e7906..3ff58e0 100644
+--- a/lib/client.js
++++ b/lib/client.js
+@@ -6858 +6858 @@ window.__ModuleLoader__.load({
+-			const inert = sessionId === void 0 || hero && chipTitle === void 0;
++			const inert = sessionId === void 0;
+@@ -6882 +6882 @@ window.__ModuleLoader__.load({
+-					hero && heroWorkspaceRow,
++					hero && chipTitle !== void 0 && heroWorkspaceRow,

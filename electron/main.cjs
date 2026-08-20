@@ -698,7 +698,7 @@ function createWindow() {
     title: APP_NAME,
     titleBarStyle: "hidden",
     titleBarOverlay: {
-      color: dark ? "#171719" : "#f7f7f8",
+      color: "#00000000",
       symbolColor: dark ? "#f5f5f5" : "#171717",
       height: 40,
     },
@@ -750,6 +750,7 @@ async function restartHarness() {
   await stopHarness();
 
   try {
+    await mainWindow.webContents.session.clearCache();
     const url = await startHarness();
     await mainWindow.loadURL(url);
   } catch (error) {
@@ -832,6 +833,7 @@ if (!hasSingleInstanceLock) {
     }
 
     Menu.setApplicationMenu(null);
+    await session.defaultSession.clearCache();
     createWindow();
 
     updateController = createUpdateController({
@@ -860,7 +862,7 @@ if (!hasSingleInstanceLock) {
         (/^#[\da-f]{3,8}$/i.test(value) || /^rgba?\([\d\s.,%]+\)$/i.test(value));
       if (!isCssColor(colors?.background) || !isCssColor(colors?.foreground)) return;
       mainWindow.setTitleBarOverlay({
-        color: colors.background,
+        color: "#00000000",
         symbolColor: colors.foreground,
         height: 40,
       });

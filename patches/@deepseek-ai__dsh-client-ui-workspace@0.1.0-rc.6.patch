@@ -1,0 +1,33 @@
+diff --git a/lib/client.js b/lib/client.js
+index 53be4bb..6eb38a6 100644
+--- a/lib/client.js
++++ b/lib/client.js
+@@ -77,0 +78,10 @@ window.__ModuleLoader__.load({
++		const DIRECT_CHAT_SESSION_IDS_KEY = "dsh.desktop-chat.sessions.v1";
++		function directChatSessionIds() {
++			try {
++				const value = JSON.parse(localStorage.getItem(DIRECT_CHAT_SESSION_IDS_KEY) ?? "[]");
++				if (!Array.isArray(value)) return /* @__PURE__ */ new Set();
++				return new Set(value.filter((id) => typeof id === "string" && id !== ""));
++			} catch {
++				return /* @__PURE__ */ new Set();
++			}
++		}
+@@ -148,0 +159 @@ window.__ModuleLoader__.load({
++			const directChats = directChatSessionIds();
+@@ -161 +172 @@ window.__ModuleLoader__.load({
+-			const stray = list.ids.map((id) => list.byId[id]).filter((s) => s !== void 0 && !accounted.has(s.id) && sessionVisible(s, list.current, archived));
++			const stray = list.ids.map((id) => list.byId[id]).filter((s) => s !== void 0 && !directChats.has(s.id) && !accounted.has(s.id) && sessionVisible(s, list.current, archived));
+@@ -223,0 +235 @@ window.__ModuleLoader__.load({
++			const directChats = directChatSessionIds();
+@@ -228 +240 @@ window.__ModuleLoader__.load({
+-				if (s === void 0 || !sessionVisible(s, list.current, archived)) continue;
++				if (s === void 0 || directChats.has(s.id) || !sessionVisible(s, list.current, archived)) continue;
+@@ -252,0 +265 @@ window.__ModuleLoader__.load({
++			const directChats = directChatSessionIds();
+@@ -262 +275 @@ window.__ModuleLoader__.load({
+-				if (summary === void 0 || summary.blank || !sessionVisible(summary, list.current, archived)) continue;
++				if (summary === void 0 || directChats.has(summary.id) || summary.blank || !sessionVisible(summary, list.current, archived)) continue;
+@@ -276 +289 @@ window.__ModuleLoader__.load({
+-				if (summary !== void 0 && !summary.blank && sessionVisible(summary, list.current, archived)) include(summary);
++				if (summary !== void 0 && !directChats.has(summary.id) && !summary.blank && sessionVisible(summary, list.current, archived)) include(summary);

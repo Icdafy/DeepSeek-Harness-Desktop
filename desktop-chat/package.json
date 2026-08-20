@@ -1,6 +1,6 @@
 {
   "name": "@deepseek-harness/desktop-chat",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "private": true,
   "description": "DeepSeek Harness direct-chat sidebar plugin",
   "type": "module",

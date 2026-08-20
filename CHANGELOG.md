@@ -2,6 +2,17 @@
 
 All notable changes to DeepSeek Harness are documented here.
 
+## [0.0.6] - 2026-08-20
+
+### Changed
+
+- Removed the titlebar logo and product name, leaving only the native minimize, maximize, and close controls.
+- Replaced the hard titlebar divider with a theme-aware translucent blur and soft visual transition into the application surface.
+- Rebuilt the direct-chat sidebar section to match the workspace browser, including search, activity state, rename, fork, archive, and collapsed-rail actions.
+- Direct chats now use the native Harness workspace conversation composer, including mode selection, the add/command entry, Full access, model selection, attachments, queues, and all other registered composer slots.
+- Direct-chat sessions are kept out of workspace group and workspace search results.
+- Clear the Chromium module cache at startup and service restart so patched desktop UI modules take effect immediately after an upgrade.
+
 ## [0.0.5] - 2026-08-19
 
 ### Added
@@ -59,3 +70,4 @@ All notable changes to DeepSeek Harness are documented here.
 [0.0.3]: https://github.com/Icdafy/DeepSeek-Harness-Desktop/releases/tag/v0.0.3
 [0.0.4]: https://github.com/Icdafy/DeepSeek-Harness-Desktop/releases/tag/v0.0.4
 [0.0.5]: https://github.com/Icdafy/DeepSeek-Harness-Desktop/releases/tag/v0.0.5
+[0.0.6]: https://github.com/Icdafy/DeepSeek-Harness-Desktop/releases/tag/v0.0.6
