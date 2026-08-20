@@ -84,11 +84,11 @@ function findElement(element, predicate) {
   return undefined;
 }
 
-test("desktop chat plugin is bundled into the v0.0.7 runtime", () => {
-  assert.equal(readJson("package.json").version, "0.0.7");
-  assert.equal(readJson("runtime/package.json").version, "0.0.7");
-  assert.equal(readJson("desktop-chat/package.json").version, "0.0.7");
-  assert.equal(readJson("desktop-updater/package.json").version, "0.0.7");
+test("desktop chat plugin is bundled into the v0.0.8 runtime", () => {
+  assert.equal(readJson("package.json").version, "0.0.8");
+  assert.equal(readJson("runtime/package.json").version, "0.0.8");
+  assert.equal(readJson("desktop-chat/package.json").version, "0.0.8");
+  assert.equal(readJson("desktop-updater/package.json").version, "0.0.8");
   assert.equal(
     readJson("runtime/package.json").dependencies["@deepseek-harness/desktop-chat"],
     "workspace:*",

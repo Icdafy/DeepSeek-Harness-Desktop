@@ -6,7 +6,12 @@ const { EventEmitter } = require("node:events");
 const { mkdtempSync, readFileSync, rmSync, writeFileSync } = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
-const { createUpdateController, readEnabled, writeEnabled } = require("../electron/updater.cjs");
+const {
+  createUpdateController,
+  friendlyUpdateError,
+  readEnabled,
+  writeEnabled,
+} = require("../electron/updater.cjs");
 
 test("desktop update preference defaults on and persists both states", () => {
   const directory = mkdtempSync(path.join(os.tmpdir(), "dsh-updater-"));
@@ -72,4 +77,95 @@ test("development controller exposes a safe non-networking state", async () => {
     controller.stop();
     rmSync(directory, { recursive: true, force: true });
   }
+});
+
+test("packaged controller retries transient update checks", async () => {
+  const directory = mkdtempSync(path.join(os.tmpdir(), "dsh-updater-"));
+  const autoUpdater = new EventEmitter();
+  let checks = 0;
+  autoUpdater.checkForUpdates = async () => {
+    checks += 1;
+    autoUpdater.emit("checking-for-update");
+    if (checks < 3) {
+      const error = new Error("net::ERR_CONNECTION_RESET");
+      autoUpdater.emit("error", error);
+      throw error;
+    }
+    autoUpdater.emit("update-not-available", { version: "0.0.8" });
+    return { isUpdateAvailable: false };
+  };
+  const controller = createUpdateController({
+    app: {
+      getPath: () => directory,
+      getVersion: () => "0.0.8",
+      isPackaged: true,
+    },
+    autoUpdater,
+    dialog: { showMessageBox: async () => ({ response: 1 }) },
+    log: () => {},
+    getWindow: () => null,
+    retryDelaysMs: [0, 0],
+  });
+  try {
+    assert.equal((await controller.checkNow()).status, "up-to-date");
+    assert.equal(checks, 3);
+    assert.equal(autoUpdater.autoDownload, false);
+  } finally {
+    controller.stop();
+    rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+test("packaged controller retries update downloads and preserves updater integrity checks", async () => {
+  const directory = mkdtempSync(path.join(os.tmpdir(), "dsh-updater-"));
+  const autoUpdater = new EventEmitter();
+  let downloads = 0;
+  autoUpdater.checkForUpdates = async () => {
+    autoUpdater.emit("checking-for-update");
+    autoUpdater.emit("update-available", { version: "0.0.9" });
+    return { isUpdateAvailable: true };
+  };
+  autoUpdater.downloadUpdate = async () => {
+    downloads += 1;
+    if (downloads < 3) {
+      const error = new Error("read ECONNRESET");
+      autoUpdater.emit("error", error);
+      throw error;
+    }
+    autoUpdater.emit("download-progress", { percent: 100 });
+    autoUpdater.emit("update-downloaded", { version: "0.0.9" });
+    return [path.join(directory, "DeepSeek-Harness-Setup-0.0.9-x64.exe")];
+  };
+  const controller = createUpdateController({
+    app: {
+      getPath: () => directory,
+      getVersion: () => "0.0.8",
+      isPackaged: true,
+    },
+    autoUpdater,
+    dialog: { showMessageBox: async () => ({ response: 1 }) },
+    log: () => {},
+    getWindow: () => null,
+    retryDelaysMs: [0, 0],
+  });
+  try {
+    const state = await controller.checkNow();
+    assert.equal(state.status, "downloaded");
+    assert.equal(state.availableVersion, "0.0.9");
+    assert.equal(downloads, 3);
+  } finally {
+    controller.stop();
+    rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+test("network updater errors are translated into actionable Chinese guidance", () => {
+  assert.equal(
+    friendlyUpdateError(new Error("net::ERR_NAME_NOT_RESOLVED")),
+    "无法连接更新服务器。请检查网络、系统代理或防火墙后重试；部分网络可能无法访问 GitHub。",
+  );
+  assert.equal(
+    friendlyUpdateError(new Error("HTTP 429 rate limit exceeded")),
+    "更新服务器暂时限制了访问，请稍后再试。",
+  );
 });

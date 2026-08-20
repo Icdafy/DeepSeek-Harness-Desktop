@@ -74,9 +74,9 @@ window.__ModuleLoader__.load({
     function statusText(state) {
       switch (state.status) {
         case "disabled": return "已关闭自动更新";
-        case "checking": return "正在检查 GitHub Releases…";
+        case "checking": return state.message || "正在检查 GitHub Releases…";
         case "available": return `发现 v${state.availableVersion || "新版本"}，准备下载`;
-        case "downloading": return `正在下载 v${state.availableVersion || "新版本"}${Number.isFinite(state.percent) ? ` · ${Math.round(state.percent)}%` : ""}`;
+        case "downloading": return state.message || `正在下载 v${state.availableVersion || "新版本"}${Number.isFinite(state.percent) ? ` · ${Math.round(state.percent)}%` : ""}`;
         case "downloaded": return `v${state.availableVersion || "新版本"} 已下载，退出应用时自动安装`;
         case "up-to-date": return `当前 v${state.currentVersion} 已是最新版本`;
         case "development": return "开发模式不连接更新服务器；打包版本会自动检查";
@@ -89,7 +89,7 @@ window.__ModuleLoader__.load({
       const bridge = globalThis.deepseekHarnessDesktop?.updates;
       const [state, setState] = React.useState({
         enabled: true,
-        currentVersion: "0.0.7",
+        currentVersion: "0.0.8",
         status: bridge ? "idle" : "development",
       });
       const [saving, setSaving] = React.useState(false);
@@ -124,7 +124,7 @@ window.__ModuleLoader__.load({
         React.createElement("div", { className: "dsh-desktop-update-copy" },
           React.createElement("p", { className: "dsh-desktop-update-title" }, "自动接收桌面更新"),
           React.createElement("p", { className: "dsh-desktop-update-description" },
-            "从 GitHub Releases 自动检查和下载新版本；下载完成后在退出应用时安装。",
+            "从 GitHub Releases 直连地址检查和下载新版本；网络波动时自动重试。",
           ),
           React.createElement("p", {
             className: "dsh-desktop-update-status",

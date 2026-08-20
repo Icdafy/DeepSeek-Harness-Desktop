@@ -1,6 +1,6 @@
 {
   "name": "@deepseek-harness/desktop-updater",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "private": true,
   "description": "DeepSeek Harness desktop update preference plugin",
   "type": "module",

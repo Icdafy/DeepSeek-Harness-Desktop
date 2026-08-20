@@ -2,6 +2,14 @@
 
 All notable changes to DeepSeek Harness are documented here.
 
+## [0.0.8] - 2026-08-20
+
+### Changed
+
+- Switched update discovery to the direct GitHub Releases latest-download endpoint, avoiding the multi-request Atom feed lookup.
+- Added automatic retries for transient update-check and installer-download failures.
+- Replaced raw networking errors with actionable guidance for GitHub reachability, system proxy, and firewall issues.
+
 ## [0.0.7] - 2026-08-20
 
 ### Changed
@@ -78,3 +86,4 @@ All notable changes to DeepSeek Harness are documented here.
 [0.0.5]: https://github.com/Icdafy/DeepSeek-Harness-Desktop/releases/tag/v0.0.5
 [0.0.6]: https://github.com/Icdafy/DeepSeek-Harness-Desktop/releases/tag/v0.0.6
 [0.0.7]: https://github.com/Icdafy/DeepSeek-Harness-Desktop/releases/tag/v0.0.7
+[0.0.8]: https://github.com/Icdafy/DeepSeek-Harness-Desktop/releases/tag/v0.0.8

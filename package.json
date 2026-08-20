@@ -1,6 +1,6 @@
 {
   "name": "deepseek-harness-desktop",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "A native Windows desktop wrapper for DeepSeek Harness",
   "private": true,
   "license": "MIT",
@@ -105,10 +105,9 @@
       "requestExecutionLevel": "user"
     },
     "publish": {
-      "provider": "github",
-      "owner": "Icdafy",
-      "repo": "DeepSeek-Harness-Desktop",
-      "releaseType": "release"
+      "provider": "generic",
+      "url": "https://github.com/Icdafy/DeepSeek-Harness-Desktop/releases/latest/download/",
+      "useMultipleRangeRequest": false
     }
   }
 }

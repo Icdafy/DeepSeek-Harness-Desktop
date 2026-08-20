@@ -13,8 +13,8 @@
 
 前往 [Releases](https://github.com/Icdafy/DeepSeek-Harness-Desktop/releases/latest) 下载 Windows x64 版本：
 
-- `DeepSeek-Harness-Setup-0.0.7-x64.exe`：标准安装器，支持选择安装目录、桌面快捷方式和卸载。
-- `DeepSeek-Harness-Portable-0.0.7-x64.exe`：免安装便携版。
+- `DeepSeek-Harness-Setup-0.0.8-x64.exe`：标准安装器，支持选择安装目录、桌面快捷方式和卸载。
+- `DeepSeek-Harness-Portable-0.0.8-x64.exe`：免安装便携版。
 - `SHA256SUMS.txt`：发布文件的 SHA-256 校验值。
 
 本版本尚未使用商业代码签名证书，Windows SmartScreen 可能显示未知发布者。请只从本仓库 Releases 下载，并核对 SHA-256。
@@ -41,6 +41,7 @@
 - 内置直接对话插件，侧边栏“对话区”紧邻工作区下方，支持搜索、重命名、分叉和归档；对话输入框完整复用工作区的模式、指令、权限、模型与附件能力。
 - 白底鲸鱼图标采用透明圆角过渡，更适合 Windows 桌面与任务栏显示。
 - **Settings → General → 自动接收桌面更新** 可独立开启或关闭 GitHub Releases 更新，并支持手动检查。
+- 更新器直接读取 Releases 的 `latest/download` 清单，遇到短暂断连会自动重试检查和下载。若当前网络完全无法访问 GitHub，仍需启用可访问 GitHub 的系统代理，或手动从 Releases 下载；发布者可另行接入自有对象存储/CDN 作为独立更新源。
 - 外观设置、壁纸数据以及窗口尺寸、位置和最大化状态会在退出后保留，下次启动自动恢复。
 
 > v0.0.1 尚未包含更新模块，因此现有 v0.0.1 用户需要手动安装 v0.0.2 一次；从 v0.0.2 开始，已开启该选项的客户端会自动接收后续正式 Release。
