@@ -84,11 +84,11 @@ function findElement(element, predicate) {
   return undefined;
 }
 
-test("desktop chat plugin is bundled into the v0.0.9 runtime", () => {
-  assert.equal(readJson("package.json").version, "0.0.9");
-  assert.equal(readJson("runtime/package.json").version, "0.0.9");
-  assert.equal(readJson("desktop-chat/package.json").version, "0.0.9");
-  assert.equal(readJson("desktop-updater/package.json").version, "0.0.9");
+test("desktop chat plugin is bundled into the v0.0.10 runtime", () => {
+  assert.equal(readJson("package.json").version, "0.0.10");
+  assert.equal(readJson("runtime/package.json").version, "0.0.10");
+  assert.equal(readJson("desktop-chat/package.json").version, "0.0.10");
+  assert.equal(readJson("desktop-updater/package.json").version, "0.0.10");
   assert.equal(
     readJson("runtime/package.json").dependencies["@deepseek-harness/desktop-chat"],
     "workspace:*",
@@ -196,7 +196,7 @@ test("desktop titlebar leaves only native Windows controls", () => {
   const main = readFileSync(path.join(root, "electron", "main.cjs"), "utf8");
   assert.doesNotMatch(preload, /titlebar\.append\(icon, name\)/);
   assert.doesNotMatch(preload, /border-bottom:/);
-  assert.match(preload, /backdrop-filter: blur\(18px\)/);
+  assert.doesNotMatch(preload, /backdrop-filter:/);
   assert.match(main, /color: "#00000000"/);
   assert.match(main, /session\.defaultSession\.clearCache\(\)/);
 });

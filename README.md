@@ -13,8 +13,8 @@
 
 前往 [Releases](https://github.com/Icdafy/DeepSeek-Harness-Desktop/releases/latest) 下载 Windows x64 版本：
 
-- `DeepSeek-Harness-Setup-0.0.9-x64.exe`：标准安装器，支持选择安装目录、桌面快捷方式和卸载。
-- `DeepSeek-Harness-Portable-0.0.9-x64.exe`：免安装便携版。
+- `DeepSeek-Harness-Setup-0.0.10-x64.exe`：标准安装器，支持选择安装目录、桌面快捷方式和卸载。
+- `DeepSeek-Harness-Portable-0.0.10-x64.exe`：免安装便携版。
 - `SHA256SUMS.txt`：发布文件的 SHA-256 校验值。
 
 本版本尚未使用商业代码签名证书，Windows SmartScreen 可能显示未知发布者。请只从本仓库 Releases 下载，并核对 SHA-256。

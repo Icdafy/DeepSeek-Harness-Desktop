@@ -37,12 +37,13 @@ function installTitlebar() {
       height: var(--dsh-desktop-titlebar-height);
       padding: 0 148px 0 0;
       color: var(--dsw-alias-label-primary, #171717);
-      background: color-mix(in srgb, var(--dsw-alias-bg-layer-1, #f7f7f8) 88%, transparent);
+      background: var(--dsw-alias-bg-base, #f7f7f8);
       border: 0;
-      box-shadow: 0 10px 24px -24px color-mix(in srgb, var(--dsw-alias-label-primary, #171717) 26%, transparent);
-      backdrop-filter: blur(18px) saturate(1.08);
+      box-shadow: none;
       user-select: none;
     }
+    /* Aqua already paints one viewport-wide background, including the titlebar. */
+    html[data-dsh-aqua] #dsh-desktop-titlebar { background: transparent; }
   `;
   document.head.appendChild(style);
 
@@ -72,11 +73,11 @@ function installTitlebar() {
   };
   new MutationObserver(syncColors).observe(document.documentElement, {
     attributes: true,
-    attributeFilter: ["class", "data-theme", "style"],
+    attributeFilter: ["class", "data-theme", "data-dsh-aqua", "style"],
   });
   new MutationObserver(syncColors).observe(document.body, {
     attributes: true,
-    attributeFilter: ["class", "data-theme", "style"],
+    attributeFilter: ["class", "data-theme", "data-ds-dark-theme", "style"],
   });
   globalThis.matchMedia?.("(prefers-color-scheme: dark)").addEventListener?.("change", syncColors);
   syncColors();

@@ -2,6 +2,13 @@
 
 All notable changes to DeepSeek Harness are documented here.
 
+## [0.0.10] - 2026-09-10
+
+### Fixed
+
+- Removed the desktop titlebar's separate tint, blur, and shadow so Aqua's existing full-window background continues seamlessly into the titlebar.
+- Matched the titlebar to the main page background in the standard theme and refreshed native window-control colors when the app's dark theme changes.
+
 ## [0.0.9] - 2026-09-10
 
 ### Added
