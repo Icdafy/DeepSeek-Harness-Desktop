@@ -1,7 +1,7 @@
 "use strict";
 
 function extractHarnessUrl(line) {
-  const match = String(line).match(/dsh web:\s+(http:\/\/127\.0\.0\.1:\d+)/i);
+  const match = String(line).match(/dsh web:\s+(http:\/\/127\.0\.0\.1:\d+(?:\/\?token=[A-Za-z0-9_-]+)?)/i);
   return match?.[1] ?? null;
 }
 

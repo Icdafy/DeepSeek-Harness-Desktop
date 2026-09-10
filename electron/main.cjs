@@ -19,6 +19,7 @@ const {
   copyFileSync,
   existsSync,
   mkdirSync,
+  mkdtempSync,
   readFileSync,
   renameSync,
   rmSync,
@@ -27,6 +28,9 @@ const {
 } = require("node:fs");
 const path = require("node:path");
 const net = require("node:net");
+const os = require("node:os");
+const { randomUUID } = require("node:crypto");
+const { validateSessionId, deleteSessionData } = require("./session-delete.cjs");
 const {
   extractHarnessUrl,
   isAllowedAppNavigation,
@@ -71,7 +75,8 @@ function migrateLegacyUserData() {
   app.setPath("userData", target);
 }
 
-migrateLegacyUserData();
+if (SMOKE_TEST) app.setPath("userData", mkdtempSync(path.join(os.tmpdir(), "dsh-desktop-smoke-")));
+else migrateLegacyUserData();
 
 let mainWindow = null;
 let harnessProcess = null;
@@ -80,6 +85,7 @@ let quitting = false;
 let logFile = null;
 let updateController = null;
 let windowStateTimer = null;
+let deletingSession = false;
 
 function ensureDirectory(directory) {
   mkdirSync(directory, { recursive: true });
@@ -141,14 +147,13 @@ function runtimePaths() {
     node: path.join(root, ".runtime", "node.exe"),
     dsh: path.join(
       root,
-      "runtime",
       "node_modules",
       "@deepseek-ai",
       "dsh",
       "lib",
       "bin.js",
     ),
-    bin: path.join(root, "runtime", "node_modules", ".bin"),
+    bin: path.join(root, "node_modules", ".bin"),
   };
 }
 
@@ -243,7 +248,7 @@ function ensureDesktopUpdaterPlugin(home, paths, environment) {
     "package.json",
   );
   const installedVersion = readJson(installedManifest)?.version;
-  if (sourceVersion && installedVersion === sourceVersion) return;
+  if (sourceVersion && installedVersion === sourceVersion && pluginFilesMatch(source, path.dirname(installedManifest))) return;
 
   log("info", `Installing desktop updater plugin v${sourceVersion ?? "unknown"}`);
   const result = spawnSync(
@@ -270,6 +275,13 @@ function ensureDesktopUpdaterPlugin(home, paths, environment) {
       `Unable to install desktop updater plugin: ${(result.stderr || result.stdout || "unknown error").trim()}`,
     );
   }
+}
+
+function pluginFilesMatch(source, installed) {
+  return ["package.json", "lib/client.js", "lib/index.js"].every(relative => {
+    try { return readFileSync(path.join(source, relative)).equals(readFileSync(path.join(installed, relative))); }
+    catch { return false; }
+  });
 }
 
 function ensureDesktopChatPlugin(home, paths, environment) {
@@ -301,7 +313,7 @@ function ensureDesktopChatPlugin(home, paths, environment) {
     "package.json",
   );
   const installedVersion = readJson(installedManifest)?.version;
-  if (sourceVersion && installedVersion === sourceVersion) return;
+  if (sourceVersion && installedVersion === sourceVersion && pluginFilesMatch(source, path.dirname(installedManifest))) return;
 
   log("info", `Installing desktop chat plugin v${sourceVersion ?? "unknown"}`);
   const result = spawnSync(
@@ -361,7 +373,7 @@ function ensureAquaPlugin(home, paths, environment) {
     "dsh-client-ui-aqua",
     "package.json",
   );
-  if (readJson(installedManifest)?.version === sourceVersion) return;
+  if (readJson(installedManifest)?.version === sourceVersion && pluginFilesMatch(source, path.dirname(installedManifest))) return;
 
   log("info", `Installing Aqua transparent UI plugin v${sourceVersion}`);
   const result = spawnSync(
@@ -468,7 +480,8 @@ async function waitForHttp(url) {
         redirect: "manual",
         signal: AbortSignal.timeout(2_000),
       });
-      if (response.ok) return;
+      if (response.ok || (response.status === 303 && response.headers.get("set-cookie") &&
+          new URL(response.headers.get("location"), url).origin === new URL(url).origin)) return;
       lastError = new Error(`HTTP ${response.status}`);
     } catch (error) {
       lastError = error;
@@ -535,12 +548,13 @@ async function startHarness() {
         "127.0.0.1",
         "--port",
         String(port),
+        "--no-open",
       ],
       {
         cwd: home,
         env: environment,
         windowsHide: true,
-        stdio: ["ignore", "pipe", "pipe"],
+        stdio: ["ignore", "pipe", "pipe", "ipc"],
       },
     );
 
@@ -556,7 +570,7 @@ async function startHarness() {
     }, STARTUP_TIMEOUT_MS);
 
     consumeLines(harnessProcess.stdout, (line) => {
-      log("harness", line);
+      log("harness", line.replace(/([?&]token=)[^\s&]+/g, "$1[redacted]"));
       const reportedUrl = extractHarnessUrl(line);
       if (!reportedUrl || settled) return;
 
@@ -566,7 +580,7 @@ async function startHarness() {
           if (settled) return;
           settled = true;
           clearTimeout(startupTimer);
-          log("info", `Harness is ready at ${harnessUrl}`);
+          log("info", `Harness is ready at ${new URL(harnessUrl).origin}`);
           resolve(harnessUrl);
         })
         .catch(rejectOnce);
@@ -580,7 +594,7 @@ async function startHarness() {
     });
 
     harnessProcess.once("exit", (code, signal) => {
-      const unexpected = !quitting && code !== 0;
+      const unexpected = !quitting && !deletingSession && code !== 0;
       log("info", `Harness exited with code=${code} signal=${signal}`);
       harnessProcess = null;
       harnessUrl = null;
@@ -649,6 +663,52 @@ async function stopHarness() {
   harnessUrl = null;
 }
 
+function prepareSessionDeletion(sessionId) {
+  return new Promise((resolve, reject) => {
+    const child = harnessProcess;
+    if (!child?.connected) return reject(new Error("本地服务尚未就绪"));
+    const requestId = randomUUID();
+    const cleanup = () => { clearTimeout(timer); child.off("message", receive); child.off("exit", exited); };
+    const exited = () => { cleanup(); reject(new Error("本地服务已退出")); };
+    const receive = (message) => {
+      if (message?.type !== "desktop-chat:delete-ready" || message.requestId !== requestId) return;
+      cleanup();
+      if (message.ok) resolve(message);
+      else reject(new Error(message.error));
+    };
+    const timer = setTimeout(() => { cleanup(); reject(new Error("等待本地服务保存会话超时")); }, 20_000);
+    child.on("message", receive);
+    child.once("exit", exited);
+    child.send({ type: "desktop-chat:prepare-delete", requestId, sessionId }, error => {
+      if (error) { cleanup(); reject(error); }
+    });
+  });
+}
+
+async function deleteDesktopSession(event, sessionId) {
+  if (event.sender !== mainWindow?.webContents || event.senderFrame !== mainWindow.webContents.mainFrame ||
+      !harnessUrl || !isAllowedAppNavigation(event.senderFrame.url, harnessUrl)) {
+    return { ok: false, error: "仅桌面对话界面可以删除会话" };
+  }
+  if (deletingSession) return { ok: false, error: "另一条对话正在删除，请稍后重试" };
+  deletingSession = true;
+  let stopped = false;
+  try {
+    validateSessionId(sessionId);
+    const prepared = await prepareSessionDeletion(sessionId);
+    await stopHarness();
+    stopped = true;
+    deleteSessionData({ home: dshHomePath(), root: prepared.root, queryPath: prepared.queryPath, sessionId });
+    await startHarness();
+    return { ok: true, url: harnessUrl };
+  } catch (error) {
+    if (stopped && !harnessProcess) await startHarness().catch(restartError => log("error", restartError.message));
+    return { ok: false, error: error.message };
+  } finally {
+    deletingSession = false;
+  }
+}
+
 function openExternal(targetUrl) {
   if (isSafeExternalUrl(targetUrl)) {
     void shell.openExternal(targetUrl);
@@ -709,6 +769,8 @@ function createWindow() {
       sandbox: true,
       webSecurity: true,
       spellcheck: true,
+      backgroundThrottling: !SMOKE_TEST,
+      offscreen: SMOKE_TEST,
     },
   });
 
@@ -725,6 +787,7 @@ function createWindow() {
 
   mainWindow.webContents.on("will-attach-webview", (event) => event.preventDefault());
   mainWindow.once("ready-to-show", () => {
+    if (SMOKE_TEST) return;
     if (windowState?.maximized) mainWindow?.maximize();
     mainWindow?.show();
   });
@@ -777,11 +840,35 @@ async function showFatalError(title, detail) {
 async function runSmokeTest() {
   try {
     const url = await startHarness();
-    const response = await fetch(url, { signal: AbortSignal.timeout(5_000) });
+    let response = await fetch(url, { redirect: "manual", signal: AbortSignal.timeout(5_000) });
+    if (response.status === 303) {
+      response = await fetch(new URL(response.headers.get("location"), url), {
+        headers: { Cookie: response.headers.get("set-cookie").split(";")[0] },
+        signal: AbortSignal.timeout(5_000),
+      });
+    }
     const body = await response.text();
     if (!response.ok || !body.includes("DeepSeek Harness")) {
       throw new Error(`Unexpected smoke-test response: HTTP ${response.status}`);
     }
+    createWindow();
+    ipcMain.handle("desktop-chat:delete-session", deleteDesktopSession);
+    const rendererErrors = [];
+    mainWindow.webContents.on("console-message", (event) => {
+      if (event.level === "error" && event.message.includes("Uncaught")) rendererErrors.push(event.message);
+    });
+    await mainWindow.loadURL(url);
+    const deadline = Date.now() + 30_000;
+    while (Date.now() < deadline) {
+      const ready = await mainWindow.webContents.executeJavaScript('Boolean(document.querySelector(".dsh-desktop-chat-title"))');
+      if (ready) break;
+      await new Promise(resolve => setTimeout(resolve, 250));
+    }
+    const ui = await mainWindow.webContents.executeJavaScript('({ title: document.querySelector(".dsh-desktop-chat-title")?.textContent, text: document.body.innerText })');
+    if (ui.title !== "对话区") throw new Error(`Desktop chat did not render: ${ui.text.slice(0, 3000)}`);
+    log("info", "Smoke: latest Harness UI and desktop chat rendered");
+    await require("./smoke-test.cjs").verifyChatUi(mainWindow, dshHomePath(), log);
+    if (rendererErrors.length) throw new Error(rendererErrors.join("\n"));
     if (process.env.DSH_DESKTOP_SMOKE_RESULT) {
       writeFileSync(
         process.env.DSH_DESKTOP_SMOKE_RESULT,
@@ -789,7 +876,8 @@ async function runSmokeTest() {
         "utf8",
       );
     }
-    process.stdout.write(`DSH_DESKTOP_SMOKE_TEST_OK ${url}\n`);
+    process.stdout.write(`DSH_DESKTOP_SMOKE_TEST_OK ${new URL(url).origin}\n`);
+    quitting = true;
     await stopHarness();
     app.exit(0);
   } catch (error) {
@@ -805,6 +893,7 @@ async function runSmokeTest() {
       }
     }
     process.stderr.write(`DSH_DESKTOP_SMOKE_TEST_FAILED ${error.stack || error.message}\n`);
+    quitting = true;
     await stopHarness();
     app.exit(1);
   }
@@ -835,6 +924,7 @@ if (!hasSingleInstanceLock) {
     Menu.setApplicationMenu(null);
     await session.defaultSession.clearCache();
     createWindow();
+    ipcMain.handle("desktop-chat:delete-session", deleteDesktopSession);
 
     updateController = createUpdateController({
       app,

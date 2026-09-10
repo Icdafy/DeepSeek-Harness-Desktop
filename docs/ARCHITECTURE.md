@@ -18,7 +18,7 @@ flowchart LR
     E --> L["Rotating desktop log"]
 ```
 
-The Electron main process owns the Harness child process. It launches `dsh --profile web --patch <desktop-updater-patch> --host 127.0.0.1 --port <stable-user-port>`, parses the address reported by the upstream CLI, verifies an HTTP response, and only then navigates the desktop window to that origin. The per-user port remains stable so origin-scoped Web UI settings and wallpaper data survive restarts. If that port is temporarily occupied, the current launch falls back to another loopback port without replacing the saved preference. App shutdown terminates the child process tree.
+The Electron main process owns the Harness child process. It launches `dsh --profile web --patch <desktop-updater-patch> --host 127.0.0.1 --port <stable-user-port> --no-open`, parses the address reported by the upstream CLI, retains the one-time authentication token, accepts the cookie-issuing same-origin redirect, and only then navigates the desktop window to that origin. The per-user port remains stable so origin-scoped Web UI settings and wallpaper data survive restarts. If that port is temporarily occupied, the current launch falls back to another loopback port without replacing the saved preference. App shutdown terminates the child process tree.
 
 ## Runtime layout
 
@@ -54,3 +54,11 @@ The direct-chat plugin follows the same offline deployment path. A pinned patch 
 ## Release integrity
 
 Each tag build runs tests, performs a packaged portable-app smoke test, and publishes SHA-256 hashes plus electron-updater metadata and an NSIS blockmap. GitHub also attaches source archives generated from the release tag. Current releases are unsigned; future production releases should add Authenticode signing without weakening checksum publication.
+
+## v0.0.9 upstream compatibility and deletion
+
+The production runtime pins official Harness 0.1.5-rc.1. The three UI patches are rebased to that release. Aqua's defineStore import now targets client-store; its peer declarations are aligned before dependency resolution by .pnpmfile.cjs. Desktop plugin cards use a dedicated Plugins tab because upstream settings.plugin.item is now keyed by Host settings namespaces. Offline installation compares bundled file contents as well as version numbers, so a compatibility patch also updates an existing Aqua installation.
+
+Permanent deletion is exposed through a sender-validated Electron IPC method. The host plugin checks session existence and rejects when a session is running, then flushes persistence over a private child-process IPC channel. The desktop stops the local host before removing the selected session directory (including all immutable generations), drops derived transcript caches and workspace references, then restarts the host and reauthenticates the renderer. Only session IDs are accepted from the page; filesystem roots come from the host and must remain inside dsh-home without junctions or symbolic links. Project files, independent forks and shared attachments remain intact.
+
+Smoke tests use a fresh temporary user-data directory and the real sandboxed Electron renderer. They exercise the sidebar, empty-session menu, durable rename, permanent deletion, preservation of a second session, and reload. No user conversation or model credentials are needed for this validation.

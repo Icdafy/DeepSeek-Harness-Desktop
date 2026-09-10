@@ -2,6 +2,26 @@
 
 All notable changes to DeepSeek Harness are documented here.
 
+## [0.0.9] - 2026-09-10
+
+### Added
+
+- Always-visible per-chat ellipsis menus, including blank conversations, with rename and permanent local deletion.
+- Permanent deletion removes every persisted log generation and derived transcript cache, clears workspace references, and reconnects the UI; active tasks block deletion until they finish.
+- Isolated Electron UI smoke coverage for creation, durable rename, deletion, sibling preservation, and reload.
+
+### Changed
+
+- Updated the complete bundled Harness runtime from `0.1.0-rc.6` to the latest official release candidate `0.1.5-rc.1`, including file uploads, multi-tab previews, DeepSeek-V41-Flash, V3 session migration, and upstream Windows/reconnection fixes.
+- Renamed the visible sidebar heading to “对话区”.
+- Rebased desktop UI patches and adapted Aqua to the upstream client runtime split. Desktop plugin switches now live in Settings → Plugins → 桌面插件.
+- Support the upstream authenticated launch URL and suppress automatic browser opening; refresh offline plugins when their bundled contents change.
+
+### Upgrade notes
+
+- Upstream migrates supported historical sessions into V3 logs while retaining original generations. New V3 history cannot be read by older Harness versions.
+- Permanent deletion does not remove independent forked conversations, project files, or globally shared attachment blobs.
+
 ## [0.0.8] - 2026-08-20
 
 ### Changed
@@ -87,3 +107,4 @@ All notable changes to DeepSeek Harness are documented here.
 [0.0.6]: https://github.com/Icdafy/DeepSeek-Harness-Desktop/releases/tag/v0.0.6
 [0.0.7]: https://github.com/Icdafy/DeepSeek-Harness-Desktop/releases/tag/v0.0.7
 [0.0.8]: https://github.com/Icdafy/DeepSeek-Harness-Desktop/releases/tag/v0.0.8
+[0.0.9]: https://github.com/Icdafy/DeepSeek-Harness-Desktop/releases/tag/v0.0.9

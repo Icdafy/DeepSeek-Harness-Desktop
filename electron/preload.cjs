@@ -3,6 +3,7 @@
 const { contextBridge, ipcRenderer } = require("electron");
 
 contextBridge.exposeInMainWorld("deepseekHarnessDesktop", Object.freeze({
+  deleteSession: (sessionId) => ipcRenderer.invoke("desktop-chat:delete-session", sessionId),
   updates: Object.freeze({
     getState: () => ipcRenderer.invoke("desktop-updates:get-state"),
     setEnabled: (enabled) => ipcRenderer.invoke("desktop-updates:set-enabled", enabled === true),

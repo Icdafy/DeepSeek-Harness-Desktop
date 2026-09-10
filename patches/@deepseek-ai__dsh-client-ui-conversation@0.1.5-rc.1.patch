@@ -1,0 +1,22 @@
+diff --git a/lib/client.js b/lib/client.js
+index 1b7f1344e65adac4f08f13a35eb94fa3b89bd9f1..a1b93a0f5e300d782e4a80fd6b5832f7645953f0 100644
+--- a/lib/client.js
++++ b/lib/client.js
+@@ -14901,7 +14901,7 @@ window.__ModuleLoader__.load({
+ 					renderSlot("conversation.hero.agentPreset", {})
+ 				]
+ 			});
+-			const inert = sessionId === void 0 || hero && chipTitle === void 0;
++			const inert = sessionId === void 0;
+ 			const inputBar = renderSlot("conversation.composer.bar", {
+ 				variant: hero ? "hero" : "composer",
+ 				...inert ? {
+@@ -14923,7 +14923,7 @@ window.__ModuleLoader__.load({
+ 						t,
+ 						renderSlot
+ 					}),
+-					hero && heroWorkspaceRow,
++					hero && chipTitle !== void 0 && heroWorkspaceRow,
+ 					zone !== void 0 && renderSlot("conversation.input.dock", zone),
+ 					inputBar
+ 				]

@@ -1,0 +1,76 @@
+diff --git a/lib/client.js b/lib/client.js
+index 537739705a368c7bdb78d39f8480c3bc60b9ef87..6147780d7101ea1ca9f7057292c6885d37bfe9d3 100644
+--- a/lib/client.js
++++ b/lib/client.js
+@@ -7,7 +7,7 @@ window.__ModuleLoader__.load({
+ 		let _deepseek_ai_dsh_client_ui_primitives = require("@deepseek-ai/dsh-client-ui-primitives");
+ 		let react_jsx_runtime = require("react/jsx-runtime");
+ 		let react = require("react");
+-		let _deepseek_ai_dsh_client_runtime_client = require("@deepseek-ai/dsh-client-runtime/client");
++		let _deepseek_ai_dsh_client_runtime_client = require("@deepseek-ai/dsh-client-store");
+ 		//#region \0dsh-css:D:\Hermes Work\deepseek-harness\packages\client\ui-aqua\src\client\AquaPluginCard.module.css.mjs
+ 		const css$3 = ".EG3s1W_card{border:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1);border-radius:12px;flex-direction:column;padding:16px;display:flex}.EG3s1W_head{justify-content:space-between;align-items:center;gap:16px;display:flex}.EG3s1W_text{flex-direction:column;gap:2px;min-width:0;display:flex}.EG3s1W_title{color:var(--dsw-alias-label-primary);font-size:14px;font-weight:500;line-height:22px}.EG3s1W_description{color:var(--dsw-alias-label-tertiary);font-size:12px;line-height:18px}.EG3s1W_toggle{border:1px solid var(--dsw-alias-border-l2);height:28px;color:var(--dsw-alias-label-primary);cursor:pointer;background:0 0;border-radius:14px;flex:none;align-items:center;gap:6px;padding:0 10px 0 6px;font-size:12px;line-height:18px;display:inline-flex}.EG3s1W_toggle:hover{background:var(--dsw-alias-interactive-bg-hover)}.EG3s1W_toggle[aria-pressed=true]{background:var(--dsw-alias-state-business-tertiary);color:var(--dsw-alias-state-business-primary);border-color:#0000}.EG3s1W_check{justify-content:center;align-items:center;width:16px;height:16px;display:inline-flex}";
+ 		const tagId$3 = "dsh-client-ui-aqua/AquaPluginCard.module.css";
+@@ -31,7 +31,7 @@ window.__ModuleLoader__.load({
+ 		//#region src/client/AquaPluginCard.tsx
+ 		/**
+ 		* Aqua card registered into the Plugins settings section's configurable tab
+-		* (`settings.plugin.item`): the master on/off switch — name, description, and
++		* (`settings.desktop.plugin.item`): the master on/off switch — name, description, and
+ 		* one toggle, in the section's card language. Every other knob lives in the
+ 		* General settings' Appearance row, so the card stays the same shape as the
+ 		* other plugin cards.
+@@ -3832,8 +3832,8 @@ void main() {
+ 					}
+ 				};
+ 			};
+-			ctx.slots.inject("settings.plugin.item", () => ctx.slots.register({
+-				name: "settings.plugin.item",
++			ctx.slots.inject("settings.desktop.plugin.item", () => ctx.slots.register({
++				name: "settings.desktop.plugin.item",
+ 				id: "aqua",
+ 				order: 5,
+ 				store: pluginStore,
+diff --git a/package.json b/package.json
+index 8991e02b7b7ff9fdb21ef8e6b164204bf367031a..f1a4ad21cda01fb3c788630fe6f2fc099c3baae2 100644
+--- a/package.json
++++ b/package.json
+@@ -32,7 +32,7 @@
+     "bundle": { "patch": "./cordis.patch.yml" },
+     "client": {
+       "inject": [
+-        "@deepseek-ai/dsh-client-runtime",
++        "@deepseek-ai/dsh-client-store",
+         "@deepseek-ai/dsh-client-locale",
+         "@deepseek-ai/dsh-client-ui-theme",
+         "@deepseek-ai/dsh-client-ui-settings",
+@@ -48,20 +48,20 @@
+   },
+   "license": "MIT",
+   "peerDependencies": {
+-    "@deepseek-ai/dsh-client-locale": "^0.1.0-rc.5",
+-    "@deepseek-ai/dsh-client-runtime": "^0.1.0-rc.5",
+-    "@deepseek-ai/dsh-client-ui-primitives": "^0.1.0-rc.5",
+-    "@deepseek-ai/dsh-client-ui-settings": "^0.1.0-rc.5",
+-    "@deepseek-ai/dsh-client-ui-settings-plugins": "^0.1.0-rc.5",
+-    "@deepseek-ai/dsh-client-ui-slots": "^0.1.0-rc.5",
+-    "@deepseek-ai/dsh-client-ui-theme": "^0.1.0-rc.5",
+-    "@deepseek-ai/dsh-invariants": "^0.1.0-rc.5",
++    "@deepseek-ai/dsh-client-locale": "^0.1.5-rc.1",
++    "@deepseek-ai/dsh-client-store": "^0.1.5-rc.1",
++    "@deepseek-ai/dsh-client-ui-primitives": "^0.1.5-rc.1",
++    "@deepseek-ai/dsh-client-ui-settings": "^0.1.5-rc.1",
++    "@deepseek-ai/dsh-client-ui-settings-plugins": "^0.1.5-rc.1",
++    "@deepseek-ai/dsh-client-ui-slots": "^0.1.5-rc.1",
++    "@deepseek-ai/dsh-client-ui-theme": "^0.1.5-rc.1",
++    "@deepseek-ai/dsh-invariants": "^0.1.5-rc.1",
+     "@deepseek-ai/cordis": "^4.0.1",
+     "react": "^18.2.0"
+   },
+   "devDependencies": {
+     "@deepseek-ai/dsh-client-locale": "workspace:^",
+-    "@deepseek-ai/dsh-client-runtime": "workspace:^",
++    "@deepseek-ai/dsh-client-store": "workspace:^",
+     "@deepseek-ai/dsh-client-test-runtime": "workspace:^",
+     "@deepseek-ai/dsh-client-ui-primitives": "workspace:^",
+     "@deepseek-ai/dsh-client-ui-settings": "workspace:^",

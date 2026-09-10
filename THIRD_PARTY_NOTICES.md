@@ -5,7 +5,7 @@ DeepSeek Harness is a community-maintained desktop distribution. It is not an of
 ## DeepSeek Harness
 
 - Project: <https://github.com/deepseek-ai/DeepSeek-Harness>
-- Bundled package: `@deepseek-ai/dsh@0.1.0-rc.6`
+- Bundled package: `@deepseek-ai/dsh@0.1.5-rc.1`
 - License: MIT
 - Copyright: Copyright (c) 2026 DeepSeek
 

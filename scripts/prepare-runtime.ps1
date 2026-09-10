@@ -134,4 +134,4 @@ if ($runtimeLinks.Count -ne 0) {
     throw "The deployed runtime contains non-portable filesystem links: $examples"
 }
 
-Write-Host "Runtime ready: Node.js $nodeReportedVersion, DeepSeek Harness 0.1.0-rc.6"
+Write-Host "Runtime ready: Node.js $nodeReportedVersion, DeepSeek Harness 0.1.5-rc.1"

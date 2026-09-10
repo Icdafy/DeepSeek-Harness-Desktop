@@ -1,6 +1,6 @@
 {
   "name": "@deepseek-harness/desktop-chat",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "private": true,
   "description": "DeepSeek Harness direct-chat sidebar plugin",
   "type": "module",
@@ -14,7 +14,8 @@
   "dsh": {
     "client": {
       "inject": [
-        "@deepseek-ai/dsh-client-runtime",
+        "@deepseek-ai/dsh-api-session-controller",
+        "@deepseek-ai/dsh-api-workspace-controller",
         "@deepseek-ai/dsh-client-ui-conversation",
         "@deepseek-ai/dsh-client-ui-primitives",
         "@deepseek-ai/dsh-client-ui-settings-plugins",

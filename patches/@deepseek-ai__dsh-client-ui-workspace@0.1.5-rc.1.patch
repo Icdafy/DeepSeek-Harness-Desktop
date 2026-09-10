@@ -1,0 +1,21 @@
+diff --git a/lib/client.js b/lib/client.js
+index a6834e160bfe9800347f05a028b7ed0ce4d929d7..ab839d41f533af5902548db85c377f9f0b74eaa9 100644
+--- a/lib/client.js
++++ b/lib/client.js
+@@ -335,8 +335,15 @@ window.__ModuleLoader__.load({
+ 		* sessions are visible nowhere, while their accounting slots remain so
+ 		* unarchiving restores position.
+ 		*/
++		const DIRECT_CHAT_SESSION_IDS_KEY = "dsh.desktop-chat.sessions.v1";
++		function isDirectChat(id) {
++			try {
++				const ids = JSON.parse(localStorage.getItem(DIRECT_CHAT_SESSION_IDS_KEY) ?? "[]");
++				return Array.isArray(ids) && ids.includes(id);
++			} catch { return false; }
++		}
+ 		function sessionVisible(session, current, archived) {
+-			return session.origin !== "subagent" && !archived.has(session.id) && (!session.blank || session.id === current);
++			return !isDirectChat(session.id) && session.origin !== "subagent" && !archived.has(session.id) && (!session.blank || session.id === current);
+ 		}
+ 		/**
+ 		* A blank session is the selected Workspace's provisional New Session row;

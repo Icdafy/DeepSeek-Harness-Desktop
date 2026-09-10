@@ -228,14 +228,14 @@ window.__ModuleLoader__.load({
         font-size: 12px;
         line-height: 20px;
       }
-      .dsh-desktop-chat-row-actions { display: none; flex: none; }
+      .dsh-desktop-chat-row-actions { display: inline-flex; flex: none; margin-left: 6px; }
       .dsh-desktop-chat-item:hover .dsh-desktop-chat-row-actions,
       .dsh-desktop-chat-item[data-menu-open="true"] .dsh-desktop-chat-row-actions { display: inline-flex; }
       .dsh-desktop-chat-item:hover .dsh-desktop-chat-item-time,
       .dsh-desktop-chat-item[data-menu-open="true"] .dsh-desktop-chat-item-time { display: none; }
       .dsh-desktop-chat-row-menu {
-        width: 16px;
-        height: 16px;
+        width: 24px;
+        height: 24px;
         border-radius: 4px;
         color: var(--dsw-alias-label-tertiary, #737a82);
       }
@@ -426,11 +426,12 @@ window.__ModuleLoader__.load({
       }, React.createElement("span", { className: "dsh-desktop-chat-switch-thumb" }));
     }
 
-    function DirectChatRow({ id, summary, current, sessions, onRename, onFork, onArchive }) {
+    function DirectChatRow({ id, summary, current, sessions, onRename, onFork, onArchive, onDelete }) {
       const [menuOpen, setMenuOpen] = React.useState(false);
       const title = titleOf(summary);
       const menuItems = [
         { id: "rename", label: "重命名", icon: React.createElement(IconEditOutline16) },
+        { id: "delete", label: "完全删除", danger: true },
         { id: "fork", label: "分叉对话", icon: React.createElement(IconBranchOutline16) },
         { id: "archive", label: "归档对话", icon: React.createElement(IconArchiveOutline20, { size: 16 }) },
       ];
@@ -451,8 +452,9 @@ window.__ModuleLoader__.load({
         summary?.blank ? null : React.createElement("span", {
           className: "dsh-desktop-chat-item-time",
         }, timeOf(summary?.updatedAt)),
-        summary?.blank ? null : React.createElement("span", {
+        React.createElement("span", {
           className: "dsh-desktop-chat-row-actions",
+          onClick: (event) => event.stopPropagation(),
         }, React.createElement(Menu, {
           open: menuOpen,
           portal: true,
@@ -462,6 +464,7 @@ window.__ModuleLoader__.load({
           onSelect: (action) => {
             setMenuOpen(false);
             if (action === "rename") onRename(id, summary?.title || title);
+            if (action === "delete") onDelete(id, title);
             if (action === "fork") onFork(id);
             if (action === "archive") onArchive(id);
           },
@@ -469,6 +472,8 @@ window.__ModuleLoader__.load({
             type: "button",
             className: "dsh-desktop-chat-row-menu",
             "aria-label": `${title}的操作`,
+            "aria-haspopup": "menu",
+            "aria-expanded": menuOpen,
             onClick: (event) => {
               event.stopPropagation();
               setMenuOpen((value) => !value);
@@ -489,6 +494,8 @@ window.__ModuleLoader__.load({
       const [renameTarget, setRenameTarget] = React.useState(null);
       const [renameDraft, setRenameDraft] = React.useState("");
       const [renaming, setRenaming] = React.useState(false);
+      const [deleteTarget, setDeleteTarget] = React.useState(null);
+      const [deleting, setDeleting] = React.useState(false);
       const searchInput = React.useRef(null);
 
       if (!enabled) return null;
@@ -501,7 +508,7 @@ window.__ModuleLoader__.load({
         .filter(({ summary }) => normalizedQuery === "" || titleOf(summary).toLowerCase().includes(normalizedQuery));
 
       const saveFront = (id) => saveSessionIds([id, ...savedIds.filter((saved) => saved !== id)]);
-      const removeSaved = (id) => saveSessionIds(savedIds.filter((saved) => saved !== id));
+      const removeSaved = (id) => saveSessionIds(readSessionIds().filter((saved) => saved !== id));
 
       const createChat = async () => {
         if (creating) return;
@@ -559,6 +566,25 @@ window.__ModuleLoader__.load({
         }
       };
 
+      const confirmDelete = async () => {
+        if (!deleteTarget || deleting) return;
+        setDeleting(true);
+        setError("");
+        try {
+          if (!window.deepseekHarnessDesktop?.deleteSession) throw new Error("请在桌面客户端中执行完全删除");
+          const result = await window.deepseekHarnessDesktop.deleteSession(deleteTarget.id);
+          if (!result.ok) throw new Error(result.error || "删除失败");
+          removeSaved(deleteTarget.id);
+          if (snapshot.current === deleteTarget.id) sessions.clear();
+          setDeleteTarget(null);
+          window.location.replace(result.url);
+        } catch (reason) {
+          setError(reason instanceof Error ? reason.message : String(reason));
+        } finally {
+          setDeleting(false);
+        }
+      };
+
       if (!wide) {
         return React.createElement("section", {
           className: "dsh-desktop-chat-root",
@@ -597,7 +623,7 @@ window.__ModuleLoader__.load({
         "aria-label": "对话区",
       },
         React.createElement("div", { className: "dsh-desktop-chat-header" },
-          React.createElement("span", { className: "dsh-desktop-chat-title" }, "对话"),
+          React.createElement("span", { className: "dsh-desktop-chat-title" }, "对话区"),
           React.createElement("div", {
             className: "dsh-desktop-chat-search-wrap",
             onClick: () => {
@@ -669,6 +695,7 @@ window.__ModuleLoader__.load({
               },
               onFork: forkChat,
               onArchive: archiveChat,
+              onDelete: (id, title) => { setError(""); setDeleteTarget({ id, title }); },
             })),
             chats.length === 0 && !error ? React.createElement("p", {
               className: "dsh-desktop-chat-empty",
@@ -679,6 +706,20 @@ window.__ModuleLoader__.load({
             }, error) : null,
           ),
           React.createElement("span", { className: "dsh-desktop-chat-fade" }),
+        ),
+        React.createElement(Modal, {
+          open: deleteTarget !== null,
+          title: "完全删除对话",
+          closeLabel: "关闭",
+          onClose: () => { if (!deleting) setDeleteTarget(null); },
+          footer: React.createElement(React.Fragment, null,
+            React.createElement(Button, { variant: "outline", disabled: deleting, onClick: () => setDeleteTarget(null) }, "取消"),
+            React.createElement(Button, { variant: "primary", disabled: deleting, onClick: confirmDelete }, deleting ? "删除中..." : "完全删除"),
+          ),
+        },
+          React.createElement("p", null, `确定完全删除“${deleteTarget?.title || "这条对话"}”？本地会话记录及其历史版本将被永久删除，无法恢复。`),
+          React.createElement("p", null, "删除后会刷新界面；有任务正在运行时，请等待任务结束后重试。"),
+          error ? React.createElement("p", { role: "alert", className: "dsh-desktop-chat-error" }, error) : null,
         ),
         React.createElement(Modal, {
           open: renameTarget !== null,
@@ -737,8 +778,15 @@ window.__ModuleLoader__.load({
 
     const inject = ["slots", "sessions", "workspaces"];
     function apply(ctx) {
-      ctx.slots.inject("settings.plugin.item", () => ctx.slots.register({
-        name: "settings.plugin.item",
+      ctx.slots.inject("settings.plugins.tab", () => ctx.slots.register({
+        name: "settings.plugins.tab",
+        id: "desktop",
+        label: "桌面插件",
+        order: 20,
+        children: { "settings.desktop.plugin.item": { kind: "list", scope: "root" } },
+      }, ({ renderSlot }) => React.createElement("ul", { style: { listStyle: "none", margin: 0, padding: 0 } }, renderSlot("settings.desktop.plugin.item"))));
+      ctx.slots.inject("settings.desktop.plugin.item", () => ctx.slots.register({
+        name: "settings.desktop.plugin.item",
         id: "desktop-chat",
         order: 30,
       }, ChatPluginSetting));

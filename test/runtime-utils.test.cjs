@@ -16,6 +16,7 @@ test("extractHarnessUrl accepts only the loopback startup line", () => {
   );
   assert.equal(extractHarnessUrl("dsh web: http://0.0.0.0:50109"), null);
   assert.equal(extractHarnessUrl("unrelated output"), null);
+  assert.equal(extractHarnessUrl("dsh web: http://127.0.0.1:50109/?token=test-token_123"), "http://127.0.0.1:50109/?token=test-token_123");
 });
 
 test("navigation is restricted to the active Harness origin", () => {

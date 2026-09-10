@@ -7,14 +7,14 @@
 面向 Windows 的 DeepSeek Harness 桌面发行版。应用把上游 Web UI、本地服务、Node.js 运行时和插件管理工具封装进一个 Electron 桌面程序，安装后不需要另行配置 Node.js。
 
 > [!IMPORTANT]
-> 本项目是社区维护的桌面封装，不是 DeepSeek 官方桌面客户端。核心 Harness 来自 [deepseek-ai/DeepSeek-Harness](https://github.com/deepseek-ai/DeepSeek-Harness)，当前固定为 `@deepseek-ai/dsh@0.1.0-rc.6`。上游仍处于 developer preview，后续版本可能存在不兼容变化。
+> 本项目是社区维护的桌面封装，不是 DeepSeek 官方桌面客户端。核心 Harness 来自 [deepseek-ai/DeepSeek-Harness](https://github.com/deepseek-ai/DeepSeek-Harness)，当前固定为 `@deepseek-ai/dsh@0.1.5-rc.1`。上游仍处于 developer preview，后续版本可能存在不兼容变化。
 
 ## 下载
 
 前往 [Releases](https://github.com/Icdafy/DeepSeek-Harness-Desktop/releases/latest) 下载 Windows x64 版本：
 
-- `DeepSeek-Harness-Setup-0.0.8-x64.exe`：标准安装器，支持选择安装目录、桌面快捷方式和卸载。
-- `DeepSeek-Harness-Portable-0.0.8-x64.exe`：免安装便携版。
+- `DeepSeek-Harness-Setup-0.0.9-x64.exe`：标准安装器，支持选择安装目录、桌面快捷方式和卸载。
+- `DeepSeek-Harness-Portable-0.0.9-x64.exe`：免安装便携版。
 - `SHA256SUMS.txt`：发布文件的 SHA-256 校验值。
 
 本版本尚未使用商业代码签名证书，Windows SmartScreen 可能显示未知发布者。请只从本仓库 Releases 下载，并核对 SHA-256。
@@ -38,7 +38,9 @@
 - 使用 DeepSeek 官方黑色鲸鱼图标，应用名称统一为 **DeepSeek Harness**。
 - 隐藏原生菜单栏与标题栏品牌文字，只保留 Windows 窗口控制；磨砂标题区会跟随浅色、深色或系统主题并与主界面柔和衔接。
 - 内置 Aqua 透明 UI 插件，提供可切换的磨砂玻璃主题、动态背景和壁纸设置。
-- 内置直接对话插件，侧边栏“对话区”紧邻工作区下方，支持搜索、重命名、分叉和归档；对话输入框完整复用工作区的模式、指令、权限、模型与附件能力。
+- 内置直接对话插件，侧边栏“对话区”紧邻工作区下方；每条对话（含空白会话）右侧常显“⋯”，支持重命名、完全删除、分叉和归档，并可搜索标题。对话输入框完整复用工作区的模式、指令、权限、模型与附件能力。
+- 完全删除会移除所选会话的所有本地日志版本和派生缓存，随后短暂重启服务并刷新界面；有任务运行时需结束后重试。工作区文件、独立分叉和共享附件不会随之删除。
+- **Settings → Plugins → 桌面插件** 提供 Aqua 与直接对话开关。
 - 白底鲸鱼图标采用透明圆角过渡，更适合 Windows 桌面与任务栏显示。
 - **Settings → General → 自动接收桌面更新** 可独立开启或关闭 GitHub Releases 更新，并支持手动检查。
 - 更新器直接读取 Releases 的 `latest/download` 清单，遇到短暂断连会自动重试检查和下载。若当前网络完全无法访问 GitHub，仍需启用可访问 GitHub 的系统代理，或手动从 Releases 下载；发布者可另行接入自有对象存储/CDN 作为独立更新源。
@@ -58,6 +60,8 @@
 ```
 
 从 v0.0.1 首次升级时，若新目录尚不存在，应用会自动迁移 `%APPDATA%\DeepSeek Harness Desktop` 中的原有数据。卸载程序默认保留数据，避免误删会话和配置。
+
+v0.0.9 引入官方 `0.1.5-rc.1` 的 V3 会话格式迁移：原日志保留，升级后新增的 V3 内容不支持旧版读取。详见 [v0.0.9 发布说明](docs/releases/v0.0.9.md)。
 
 ## 从源码构建
 

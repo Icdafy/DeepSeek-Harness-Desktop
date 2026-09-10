@@ -84,11 +84,11 @@ function findElement(element, predicate) {
   return undefined;
 }
 
-test("desktop chat plugin is bundled into the v0.0.8 runtime", () => {
-  assert.equal(readJson("package.json").version, "0.0.8");
-  assert.equal(readJson("runtime/package.json").version, "0.0.8");
-  assert.equal(readJson("desktop-chat/package.json").version, "0.0.8");
-  assert.equal(readJson("desktop-updater/package.json").version, "0.0.8");
+test("desktop chat plugin is bundled into the v0.0.9 runtime", () => {
+  assert.equal(readJson("package.json").version, "0.0.9");
+  assert.equal(readJson("runtime/package.json").version, "0.0.9");
+  assert.equal(readJson("desktop-chat/package.json").version, "0.0.9");
+  assert.equal(readJson("desktop-updater/package.json").version, "0.0.9");
   assert.equal(
     readJson("runtime/package.json").dependencies["@deepseek-harness/desktop-chat"],
     "workspace:*",
@@ -114,7 +114,8 @@ test("desktop chat client registers settings and sidebar surfaces", () => {
   plugin.apply(ctx);
 
   assert.deepEqual(registrations.map(({ name, id }) => ({ name, id })), [
-    { name: "settings.plugin.item", id: "desktop-chat" },
+    { name: "settings.plugins.tab", id: "desktop" },
+    { name: "settings.desktop.plugin.item", id: "desktop-chat" },
     { name: "sidebar.footer.action", id: "desktop-chat" },
   ]);
 });
@@ -168,11 +169,11 @@ test("new direct chat creates and opens a session without a workspace", async ()
 test("direct chats use the native workspace composer and stay out of workspace lists", () => {
   const source = readFileSync(path.join(root, "desktop-chat", "lib", "client.js"), "utf8");
   const conversationPatch = readFileSync(
-    path.join(root, "patches", "@deepseek-ai__dsh-client-ui-conversation@0.1.0-rc.6.patch"),
+    path.join(root, "patches", "@deepseek-ai__dsh-client-ui-conversation@0.1.5-rc.1.patch"),
     "utf8",
   );
   const workspacePatch = readFileSync(
-    path.join(root, "patches", "@deepseek-ai__dsh-client-ui-workspace@0.1.0-rc.6.patch"),
+    path.join(root, "patches", "@deepseek-ai__dsh-client-ui-workspace@0.1.5-rc.1.patch"),
     "utf8",
   );
   assert.doesNotMatch(source, /conversation\.composer/);

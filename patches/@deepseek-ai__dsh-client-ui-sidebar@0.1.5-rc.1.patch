@@ -1,0 +1,26 @@
+diff --git a/lib/client.js b/lib/client.js
+index f04f56eab76b7460b377bbb19958a4530fca0f98..4243401898f38ac5b91d7f4bc464873731219120 100644
+--- a/lib/client.js
++++ b/lib/client.js
+@@ -282,18 +282,18 @@ window.__ModuleLoader__.load({
+ 					}),
+ 					(0, react_jsx_runtime.jsx)("div", {
+ 						className: SidebarRoot_module_css_default.regionArea,
+-						children: renderSlot("sidebar.workspaces", {
++						children: [renderSlot("sidebar.workspaces", {
+ 							wide,
+ 							expandSidebar: () => {
+ 								if (collapsed) toggleSidebar();
+ 							}
+-						})
++						}), renderSlot("sidebar.footer.action", { wide, expandSidebar: () => { if (collapsed) toggleSidebar(); } })]
+ 					}),
+ 					(0, react_jsx_runtime.jsxs)("div", {
+ 						className: SidebarRoot_module_css_default.footArea,
+ 						children: [(0, react_jsx_runtime.jsx)("div", {
+ 							className: SidebarRoot_module_css_default.footerActions,
+-							children: renderSlot("sidebar.footer.action", { wide })
++							children: null
+ 						}), (0, react_jsx_runtime.jsx)("div", {
+ 							className: SidebarRoot_module_css_default.settingsArea,
+ 							children: renderSlot("sidebar.settings", { wide })
