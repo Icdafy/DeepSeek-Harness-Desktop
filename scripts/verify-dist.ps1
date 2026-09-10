@@ -60,7 +60,7 @@ Remove-Item -LiteralPath $stdoutPath, $stderrPath, $resultPath -Force -ErrorActi
 $env:DSH_DESKTOP_SMOKE_TEST = '1'
 $env:DSH_DESKTOP_SMOKE_RESULT = $resultPath
 try {
-    $process = Start-Process -FilePath $portable[0].FullName -PassThru -WindowStyle Hidden -RedirectStandardOutput $stdoutPath -RedirectStandardError $stderrPath
+    $process = Start-Process -FilePath $portable[0].FullName -ArgumentList '--lang=zh-CN' -PassThru -WindowStyle Hidden -RedirectStandardOutput $stdoutPath -RedirectStandardError $stderrPath
     $deadline = [DateTime]::UtcNow.AddSeconds(180)
     while (-not (Test-Path -LiteralPath $resultPath) -and [DateTime]::UtcNow -lt $deadline) {
         Start-Sleep -Milliseconds 250
