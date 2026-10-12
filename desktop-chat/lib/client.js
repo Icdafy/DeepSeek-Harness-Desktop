@@ -13,6 +13,7 @@ window.__ModuleLoader__.load({
       IconNewChatOutlineRegular,
       IconSearchOutlineRegular,
       Menu,
+      MenuItemButton,
       Modal,
       StateDot,
       Tooltip,
@@ -24,6 +25,17 @@ window.__ModuleLoader__.load({
     const SESSION_IDS_EVENT = "dsh-desktop-chat:sessions-changed";
     const MAX_VISIBLE_SESSIONS = 100;
     const MAX_TRACKED_SESSIONS = 500;
+
+    let workspaceDeleteTarget = null;
+    const workspaceDeleteListeners = new Set();
+    const setWorkspaceDeleteTarget = (target) => {
+      workspaceDeleteTarget = target;
+      for (const listener of workspaceDeleteListeners) listener();
+    };
+    const subscribeWorkspaceDelete = (listener) => {
+      workspaceDeleteListeners.add(listener);
+      return () => workspaceDeleteListeners.delete(listener);
+    };
 
     const css = `
       .dsh-desktop-chat-root {
@@ -483,6 +495,62 @@ window.__ModuleLoader__.load({
       );
     }
 
+    async function permanentlyDeleteSession(id) {
+      if (!window.deepseekHarnessDesktop?.deleteSession) throw new Error("请在桌面客户端中执行完全删除");
+      const result = await window.deepseekHarnessDesktop.deleteSession(id);
+      if (!result.ok) throw new Error(result.error || "删除失败");
+      writeSessionIds(readSessionIds().filter((saved) => saved !== id));
+      window.location.replace(result.url);
+    }
+
+    function WorkspaceDeleteMenuItem({ sessionId, displayTitle, useMenuOpenState }) {
+      const [, setMenuOpen] = useMenuOpenState();
+      return React.createElement(MenuItemButton, {
+        danger: true,
+        separatorBefore: true,
+        onSelect: () => {
+          setMenuOpen(false);
+          setWorkspaceDeleteTarget({ id: sessionId, title: displayTitle || "这条对话" });
+        },
+      }, "完全删除");
+    }
+
+    function WorkspaceDeleteDialog() {
+      const target = React.useSyncExternalStore(subscribeWorkspaceDelete, () => workspaceDeleteTarget);
+      const [deleting, setDeleting] = React.useState(false);
+      const [error, setError] = React.useState("");
+      React.useEffect(() => setError(""), [target]);
+      if (!target) return null;
+      const close = () => { if (!deleting) setWorkspaceDeleteTarget(null); };
+      const confirm = async () => {
+        if (deleting) return;
+        setDeleting(true);
+        setError("");
+        try {
+          await permanentlyDeleteSession(target.id);
+          setWorkspaceDeleteTarget(null);
+        } catch (reason) {
+          setError(reason instanceof Error ? reason.message : String(reason));
+        } finally {
+          setDeleting(false);
+        }
+      };
+      return React.createElement(Modal, {
+        open: true,
+        title: "完全删除对话",
+        closeLabel: "关闭",
+        onClose: close,
+        footer: React.createElement(React.Fragment, null,
+          React.createElement(Button, { variant: "outline", disabled: deleting, onClick: close }, "取消"),
+          React.createElement(Button, { variant: "primary", disabled: deleting, onClick: confirm }, deleting ? "删除中..." : "完全删除"),
+        ),
+      },
+        React.createElement("p", null, `确定完全删除“${target.title}”？本地会话记录及其历史版本将被永久删除，无法恢复。`),
+        React.createElement("p", null, "工作区中的项目文件会保留。删除后会刷新界面；有任务正在运行时，请等待任务结束后重试。"),
+        error ? React.createElement("p", { role: "alert", className: "dsh-desktop-chat-error" }, error) : null,
+      );
+    }
+
     function DirectChatModule({ wide, expandSidebar, sessions, uiWorkspace }) {
       const [enabled] = useEnabled();
       const [savedIds, saveSessionIds] = useSavedSessionIds();
@@ -570,12 +638,8 @@ window.__ModuleLoader__.load({
         setDeleting(true);
         setError("");
         try {
-          if (!window.deepseekHarnessDesktop?.deleteSession) throw new Error("请在桌面客户端中执行完全删除");
-          const result = await window.deepseekHarnessDesktop.deleteSession(deleteTarget.id);
-          if (!result.ok) throw new Error(result.error || "删除失败");
-          removeSaved(deleteTarget.id);
+          await permanentlyDeleteSession(deleteTarget.id);
           setDeleteTarget(null);
-          window.location.replace(result.url);
         } catch (reason) {
           setError(reason instanceof Error ? reason.message : String(reason));
         } finally {
@@ -776,6 +840,15 @@ window.__ModuleLoader__.load({
 
     const inject = ["slots", "sessions", "uiWorkspace"];
     function apply(ctx) {
+      ctx.slots.inject("sidebar.workspaces.session.menu.item", () => ctx.slots.register({
+        name: "sidebar.workspaces.session.menu.item",
+        id: "desktop-delete",
+        order: 500,
+      }, WorkspaceDeleteMenuItem));
+      ctx.slots.inject("shell.overlay", () => ctx.slots.register({
+        name: "shell.overlay",
+        id: "desktop-workspace-delete",
+      }, WorkspaceDeleteDialog));
       ctx.slots.inject("settings.plugins.tab", () => ctx.slots.register({
         name: "settings.plugins.tab",
         id: "desktop",

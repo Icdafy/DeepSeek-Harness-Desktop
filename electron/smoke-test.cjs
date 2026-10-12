@@ -2,6 +2,23 @@
 const fs = require("node:fs");
 const path = require("node:path");
 
+function prepareWorkspaceFixtures(home) {
+  const workspacePath = path.join(home, "smoke-workspaces", "kept-project");
+  const missingPath = path.join(home, "smoke-workspaces", "Desktop", "人形机器人研究");
+  fs.mkdirSync(workspacePath, { recursive: true });
+  fs.writeFileSync(path.join(workspacePath, "report.md"), "keep workspace files");
+  fs.mkdirSync(path.join(home, "storages"), { recursive: true });
+  const record = (directory, title, createdAt) => ({ path: directory, title, sessionIds: [], createdAt, updatedAt: createdAt });
+  fs.writeFileSync(path.join(home, "storages", "workspace.json"), JSON.stringify({
+    unit: { name: "workspace", version: 2 },
+    global: { initialized: true, workspaceIds: ["smoke-missing", "smoke-workspace"], archivedSessionIds: [], pinnedSessionIds: [] },
+    tables: { workspaces: {
+      "smoke-missing": record(missingPath, "人形机器人研究", "2026-10-12T00:00:00.000Z"),
+      "smoke-workspace": record(fs.realpathSync(workspacePath), "kept-project", "2026-10-11T00:00:00.000Z"),
+    } },
+  }));
+}
+
 async function verifyChatUi(window, home, log) {
   const js = source => window.webContents.executeJavaScript(source);
   async function until(source, label, timeout = 30_000) {
@@ -21,6 +38,10 @@ async function verifyChatUi(window, home, log) {
   await clickText("继续");
   await until('document.body.innerText.includes("稍后配置") || !document.body.innerText.includes("预览版说明")', "preview dismissed");
   if (await js('document.body.innerText.includes("稍后配置")')) await clickText("稍后配置");
+  await until('document.body.innerText.includes("工作目录不存在或不可访问")', "missing workspace startup guard");
+  const missingPath = path.join(home, "smoke-workspaces", "Desktop", "人形机器人研究");
+  if (fs.existsSync(missingPath)) throw new Error("Startup recreated the removed workspace");
+  log("info", "Smoke: startup refuses to recreate a removed workspace");
   await create();
   await until('document.querySelectorAll(".dsh-desktop-chat-item").length === 1', "create blank chat");
   const [deletedId] = await ids();
@@ -75,6 +96,41 @@ async function verifyChatUi(window, home, log) {
   await until(`document.querySelectorAll('.dsh-desktop-chat-item').length === 1 && !JSON.parse(localStorage.getItem('dsh.desktop-chat.sessions.v1') || '[]').includes(${JSON.stringify(archivedId)})`, "archive chat");
   if (!(await ids()).includes(retainedId)) throw new Error("Archiving lost the original chat");
   log("info", "Smoke: empty-session fork guard, navigation and archive passed");
+  // Exercise the real workspace slot, including a current blank Session row.
+  const currentWorkspaceId = () => js(`document.querySelector('[data-row-key^="session:"][aria-selected=true]')?.getAttribute('data-row-key').slice(8)`);
+  const createWorkspaceChat = () => js('Array.from(document.querySelectorAll("button[aria-label]")).find(el => /kept-project/.test(el.getAttribute("aria-label")) && /新建会话/.test(el.getAttribute("aria-label")))?.click()');
+  await createWorkspaceChat();
+  await until(`!!document.querySelector('[data-row-key^="session:"][aria-selected=true]')`, "create workspace chat");
+  const keptWorkspaceId = await currentWorkspaceId();
+  await createWorkspaceChat();
+  await until(`document.querySelector('[data-row-key^="session:"][aria-selected=true]')?.getAttribute('data-row-key') !== 'session:${keptWorkspaceId}'`, "second workspace chat");
+  const deletedWorkspaceId = await currentWorkspaceId();
+  if (!deletedWorkspaceId) throw new Error("No selected workspace Session");
+  await js(`document.querySelector('[data-row-key^="session:"][aria-selected=true] button[aria-label^="会话"]').click()`);
+  await clickText("完全删除");
+  await until('document.body.textContent.includes("确定完全删除")', "workspace deletion confirmation");
+  await clickText("取消");
+  await until('!document.body.textContent.includes("确定完全删除")', "cancel workspace deletion");
+  await js(`document.querySelector('[data-row-key="session:${deletedWorkspaceId}"] button[aria-label^="会话"]').click()`);
+  await clickText("完全删除");
+  await until('document.body.textContent.includes("确定完全删除")', "reopen workspace deletion confirmation");
+  await clickText("完全删除");
+  await until(`!document.querySelector('[data-row-key="session:${deletedWorkspaceId}"]') && !!document.querySelector('.dsh-desktop-chat-title') && !document.body.textContent.includes('确定完全删除')`, "workspace delete and reconnect", 60_000);
+  const stored = JSON.parse(fs.readFileSync(path.join(home, "storages", "workspace.json"), "utf8"));
+  const members = stored.tables.workspaces["smoke-workspace"].sessionIds;
+  if (members.includes(deletedWorkspaceId) || !members.includes(keptWorkspaceId)) throw new Error("Workspace deletion corrupted membership");
+  let retainedLog = false;
+  for (const project of fs.readdirSync(root)) {
+    if (fs.existsSync(path.join(root, project, deletedWorkspaceId))) throw new Error("Workspace Session still exists on disk");
+    retainedLog ||= fs.existsSync(path.join(root, project, keptWorkspaceId));
+  }
+  if (!retainedLog) throw new Error("Deletion lost the sibling workspace Session");
+  if (fs.existsSync(path.join(home, "storages", "session_projcache", "sessions", `${deletedWorkspaceId}.json`))) throw new Error("Deleted projection cache survived");
+  if (fs.readFileSync(path.join(home, "smoke-workspaces", "kept-project", "report.md"), "utf8") !== "keep workspace files") throw new Error("Deletion changed workspace files");
+  await window.webContents.reload();
+  await until(`!!document.querySelector('.dsh-desktop-chat-title') && !!document.querySelector('[data-row-key="session:${keptWorkspaceId}"]')`, "workspace deletion survives reload");
+  if (fs.existsSync(missingPath)) throw new Error("Reload recreated the removed workspace");
+  log("info", "Smoke: workspace blank-chat deletion, cancellation, sibling/files/cache preservation and reload passed");
   if (await js('document.body.innerText.includes("稍后配置")')) await clickText("稍后配置");
   await clickText("设置");
   await until('document.body.innerText.includes("通用设置")', "settings dialog");
@@ -91,4 +147,4 @@ async function verifyChatUi(window, home, log) {
   log("info", "Smoke: updater, desktop plugin settings and Aqua toggles passed");
 }
 
-module.exports = { verifyChatUi };
+module.exports = { prepareWorkspaceFixtures, verifyChatUi };

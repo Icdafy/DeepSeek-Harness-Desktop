@@ -2,6 +2,18 @@
 
 All notable changes to DeepSeek Harness are documented here.
 
+## [0.0.12] - 2026-10-12
+
+### Added
+
+- Added permanent local deletion to every workspace Session's ellipsis menu, including current blank Sessions and archived rows. The action remains available when the direct-chat section is disabled.
+- Added workspace UI smoke coverage for confirmation cancellation, on-disk deletion, sibling and project-file preservation, cache removal, and reload.
+
+### Fixed
+
+- Stop silently recreating removed workspace directories during startup: Session creation now requires an existing directory instead of unconditionally calling `mkdir(cwd)`. Missing or inaccessible workspaces show a request to choose a directory again; history is retained.
+- Remove the selected Session's per-record projection cache introduced by the current Harness runtime, alongside all persisted log generations, workspace pin/archive/membership references, and derived SQLite sidecars.
+
 ## [0.0.11] - 2026-10-12
 
 ### Changed
@@ -134,3 +146,4 @@ All notable changes to DeepSeek Harness are documented here.
 [0.0.9]: https://github.com/Icdafy/DeepSeek-Harness-Desktop/releases/tag/v0.0.9
 [0.0.10]: https://github.com/Icdafy/DeepSeek-Harness-Desktop/releases/tag/v0.0.10
 [0.0.11]: https://github.com/Icdafy/DeepSeek-Harness-Desktop/releases/tag/v0.0.11
+[0.0.12]: https://github.com/Icdafy/DeepSeek-Harness-Desktop/releases/tag/v0.0.12

@@ -263,6 +263,7 @@ minimumReleaseAgeExclude:
   - '@deepseek-ai/dsh-workflow@0.2.1-alpha.2'
 
 patchedDependencies:
+  '@deepseek-ai/dsh-api-session-controller@0.2.1-alpha.2': patches/@deepseek-ai__dsh-api-session-controller@0.2.1-alpha.2.patch
   '@deepseek-ai/dsh-client-ui-conversation@0.2.1-alpha.2': patches/@deepseek-ai__dsh-client-ui-conversation@0.2.1-alpha.2.patch
   '@deepseek-ai/dsh-client-ui-sidebar@0.2.1-alpha.2': patches/@deepseek-ai__dsh-client-ui-sidebar@0.2.1-alpha.2.patch
   '@deepseek-ai/dsh-client-ui-workspace@0.2.1-alpha.2': patches/@deepseek-ai__dsh-client-ui-workspace@0.2.1-alpha.2.patch

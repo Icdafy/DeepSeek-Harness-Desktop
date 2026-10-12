@@ -72,3 +72,13 @@ Desktop UI patches target the exact new package versions. The workspace patch pr
 Upstream's current Session format is V4. Its persistence catalog owns historical migration; the desktop continues to use the same user-data directory and never rewrites session transcripts itself. Older runtimes cannot read newly written V4 content.
 
 Direct-chat navigation and archiving now use `uiWorkspace`, current selection follows the Session catalog's `retainedBy.mainView`, and rename borrows a Session reference with `sessions.using`. Both desktop chat and Aqua use the new Regular icon exports. Smoke checks also open the native composer, verify upstream's rejection of forks without a completed turn, archive a chat while retaining its sibling, render desktop update/plugin settings and toggle Aqua; updater checks in smoke mode use a non-networking development controller.
+
+## v0.0.12 workspace deletion and directory validation
+
+The desktop chat plugin contributes a destructive entry to `sidebar.workspaces.session.menu.item` and a confirmation dialog to `shell.overlay`. The request survives closing the row menu, and this registration is independent of the direct-chat section's enabled preference. The pinned workspace UI patch exposes actions on the selected blank Session too. Workspace and direct-chat deletion share the same validated Electron IPC path.
+
+Projection caches now use the storage-domain per-record layout. Permanent deletion removes `storages/session_projcache/sessions/<id>.json` for the selected Session in addition to the legacy cache, persisted log directories, workspace references and SQLite query sidecars. Other per-record caches and project files are preserved.
+
+Startup navigation selects a recent workspace and may create a blank Session. Upstream's `ApiSessionAgentController.createOrAdopt` unconditionally called `mkdir(cwd, { recursive: true })`, silently recreating a directory removed outside Harness. The pinned API Session patch replaces that call with `stat(cwd)` and an existing-directory check, in both the bundled runtime and the module used by regression tests. Missing directories reject creation with a choose-workspace message. Resuming existing history continues through the upstream resume path; explicit directory creation and first-use default workspace initialization retain their own separate APIs.
+
+Smoke mode seeds two workspace registrations in a fresh temporary application directory: one existing project with a sentinel file and one removed desktop-style directory. It verifies startup refusal, workspace blank-Session cancellation/deletion, on-disk absence, sibling and project-file preservation, per-record cache removal and reload. Tests never open or modify real user workspace data.

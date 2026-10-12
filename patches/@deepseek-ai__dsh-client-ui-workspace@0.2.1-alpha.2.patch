@@ -19,3 +19,21 @@ index 684800c..89c624b 100644
  			if (session.blank && session.id !== current) return false;
  			switch (archivedFilter) {
  				case "default": return !archived.has(session.id);
+@@ -1568,5 +1575,8 @@ window.__ModuleLoader__.load({
+ 					}, (reason) => {
+ 						if (this.lifetime.signal.aborted) return;
+-						initial = "waiting";
++						initial = sessionCreateErrorOf(reason)?.rpcError.code === "session/directory-unavailable" ? "done" : "waiting";
++						this.notify({
++							kind: "createFailed", message: creationFailureMessage(reason)
++						});
+ 						console.warn("initial Session restoration failed:", reason);
+ 					});
+@@ -2294,6 +2304,6 @@ window.__ModuleLoader__.load({
+ 						}),
+ 						row.pinned && !row.archived && (0, react_jsx_runtime.jsx)(PinnedIndicator, { t }),
+-						!row.blank && (0, react_jsx_runtime.jsxs)("span", {
++						(0, react_jsx_runtime.jsxs)("span", {
+ 							className: Rows_module_css_default.rowActions,
+ 							onClick: (e) => {
+ 								e.stopPropagation();

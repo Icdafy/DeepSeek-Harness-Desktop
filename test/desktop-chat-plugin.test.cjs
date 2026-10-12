@@ -12,7 +12,7 @@ function readJson(relative) {
   return JSON.parse(readFileSync(path.join(root, relative), "utf8"));
 }
 
-function loadClientPlugin() {
+function loadClientPlugin({ deleteSession, replace, enabled = true } = {}) {
   const source = readFileSync(path.join(root, "desktop-chat", "lib", "client.js"), "utf8");
   let plugin = null;
   const React = {
@@ -36,6 +36,8 @@ function loadClientPlugin() {
     return require(request);
   };
   const window = {
+    deepseekHarnessDesktop: { deleteSession },
+    location: { replace },
     __ModuleLoader__: {
       load: (definition) => {
         plugin = definition.factory(browserRequire);
@@ -47,7 +49,7 @@ function loadClientPlugin() {
     head: { appendChild: () => {} },
   };
   const localStorage = {
-    getItem: () => null,
+    getItem: key => key === "dsh.desktop-chat.enabled.v1" ? String(enabled) : null,
     setItem: () => {},
   };
   window.addEventListener = () => {};
@@ -84,11 +86,11 @@ function findElement(element, predicate) {
   return undefined;
 }
 
-test("desktop chat plugin is bundled into the v0.0.11 runtime", () => {
-  assert.equal(readJson("package.json").version, "0.0.11");
-  assert.equal(readJson("runtime/package.json").version, "0.0.11");
-  assert.equal(readJson("desktop-chat/package.json").version, "0.0.11");
-  assert.equal(readJson("desktop-updater/package.json").version, "0.0.11");
+test("desktop chat plugin is bundled into the v0.0.12 runtime", () => {
+  assert.equal(readJson("package.json").version, "0.0.12");
+  assert.equal(readJson("runtime/package.json").version, "0.0.12");
+  assert.equal(readJson("desktop-chat/package.json").version, "0.0.12");
+  assert.equal(readJson("desktop-updater/package.json").version, "0.0.12");
   assert.equal(
     readJson("runtime/package.json").dependencies["@deepseek-harness/desktop-chat"],
     "workspace:*",
@@ -114,10 +116,73 @@ test("desktop chat client registers settings and sidebar surfaces", () => {
   plugin.apply(ctx);
 
   assert.deepEqual(registrations.map(({ name, id }) => ({ name, id })), [
+    { name: "sidebar.workspaces.session.menu.item", id: "desktop-delete" },
+    { name: "shell.overlay", id: "desktop-workspace-delete" },
     { name: "settings.plugins.tab", id: "desktop" },
     { name: "settings.desktop.plugin.item", id: "desktop-chat" },
     { name: "sidebar.footer.action", id: "desktop-chat" },
   ]);
+});
+
+test("workspace permanent deletion uses the selected ID and remains independent of the direct-chat switch", async () => {
+  const deleted = [];
+  const redirected = [];
+  const plugin = loadClientPlugin({
+    enabled: false,
+    deleteSession: async id => { deleted.push(id); return { ok: true, url: "http://127.0.0.1:1234/" }; },
+    replace: url => redirected.push(url),
+  });
+  const surfaces = new Map();
+  plugin.apply({
+    slots: {
+      inject: (name, register) => { const result = register(); surfaces.set(name, result.component); },
+      register: (options, component) => ({ options, component }),
+    },
+  });
+  const menu = surfaces.get("sidebar.workspaces.session.menu.item");
+  const dialog = surfaces.get("shell.overlay");
+  assert.equal(dialog(), null);
+  let menuClosed = false;
+  const item = menu({ sessionId: "workspace-chat-1", displayTitle: "研究", useMenuOpenState: () => [true, value => { menuClosed = value === false; }] });
+  assert.equal(item.props.danger, true);
+  item.props.onSelect();
+  assert.equal(menuClosed, true);
+  assert.equal(deleted.length, 0);
+  const confirmation = dialog();
+  const buttons = elementChildren(confirmation.props.footer);
+  await buttons.find(button => button.props.children === "完全删除").props.onClick();
+  assert.deepEqual(deleted, ["workspace-chat-1"]);
+  assert.deepEqual(redirected, ["http://127.0.0.1:1234/"]);
+  assert.equal(dialog(), null);
+});
+
+test("failed workspace deletion keeps the confirmation open without redirecting", async () => {
+  const plugin = loadClientPlugin({
+    deleteSession: async () => ({ ok: false, error: "有任务正在运行" }),
+    replace: () => { throw new Error("must not redirect"); },
+  });
+  const surfaces = new Map();
+  plugin.apply({ slots: {
+    inject: (name, register) => surfaces.set(name, register().component),
+    register: (options, component) => ({ options, component }),
+  } });
+  surfaces.get("sidebar.workspaces.session.menu.item")({ sessionId: "workspace-chat-1", useMenuOpenState: () => [true, () => {}] }).props.onSelect();
+  const dialog = surfaces.get("shell.overlay");
+  await elementChildren(dialog().props.footer).find(button => button.props.children === "完全删除").props.onClick();
+  assert.equal(dialog().props.open, true);
+});
+
+test("cancelling workspace deletion does not invoke the filesystem bridge", () => {
+  const plugin = loadClientPlugin({ deleteSession: () => { throw new Error("must not delete"); } });
+  const surfaces = new Map();
+  plugin.apply({ slots: {
+    inject: (name, register) => surfaces.set(name, register().component),
+    register: (options, component) => ({ options, component }),
+  } });
+  surfaces.get("sidebar.workspaces.session.menu.item")({ sessionId: "workspace-chat-1", useMenuOpenState: () => [true, () => {}] }).props.onSelect();
+  const dialog = surfaces.get("shell.overlay");
+  dialog().props.onClose();
+  assert.equal(dialog(), null);
 });
 
 test("new direct chat creates and opens a session without a workspace", async () => {

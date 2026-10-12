@@ -838,6 +838,7 @@ async function showFatalError(title, detail) {
 
 async function runSmokeTest() {
   try {
+    require("./smoke-test.cjs").prepareWorkspaceFixtures(dshHomePath());
     const url = await startHarness();
     let response = await fetch(url, { redirect: "manual", signal: AbortSignal.timeout(5_000) });
     if (response.status === 303) {

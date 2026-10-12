@@ -50,7 +50,10 @@ function deleteSessionData({ home, root, sessionId, queryPath }) {
   }
   const workspace = assertChild(path.join(home, "storages", "workspace.json"), home);
   const workspaceValue = fs.existsSync(workspace) ? JSON.parse(fs.readFileSync(workspace, "utf8")) : undefined;
-  const caches = [assertChild(path.join(home, "storages", "session_projcache.json"), home)];
+  const caches = [
+    assertChild(path.join(home, "storages", "session_projcache.json"), home),
+    assertChild(path.join(home, "storages", "session_projcache", "sessions", `${sessionId}.json`), home),
+  ];
   if (queryPath && queryPath !== ":memory:") {
     for (const suffix of ["", "-wal", "-shm"]) caches.push(assertChild(queryPath + suffix, home));
   }

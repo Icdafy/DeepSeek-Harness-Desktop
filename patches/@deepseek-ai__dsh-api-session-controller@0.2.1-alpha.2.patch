@@ -1,0 +1,40 @@
+diff --git a/lib/index.js b/lib/index.js
+--- a/lib/index.js
++++ b/lib/index.js
+@@ -6,6 +6,6 @@
+ import { SessionQueryError } from "@deepseek-ai/dsh-session-query";
+ import { Remote, RemoteError, TypertRemoteService, remoteErrorOf } from "@deepseek-ai/dsh-typert-protocol";
+-import { mkdir } from "node:fs/promises";
++import { stat } from "node:fs/promises";
+ import { installModelSelection } from "@deepseek-ai/dsh-agent";
+ import { credentialRef } from "@deepseek-ai/dsh-credentials";
+ import { randomUUID } from "node:crypto";
+@@ -444,7 +444,7 @@
+ 		}
+ 		try {
+-			await mkdir(cwd, { recursive: true });
++			if (!(await stat(cwd)).isDirectory()) throw new Error("工作目录不是文件夹");
+ 		} catch (error) {
+-			throw new Error(`failed to ensure project directory "${cwd}": ${String(error)}`, { cause: error });
++			throw new RemoteError("session/directory-unavailable", `工作目录不存在或不可访问，请重新选择工作区："${cwd}"`, { cwd });
+ 		}
+ 		const composition = await this.composeAgent(presetId);
+diff --git a/lib/types/agent.js b/lib/types/agent.js
+--- a/lib/types/agent.js
++++ b/lib/types/agent.js
+@@ -54,3 +54,3 @@
+-import { mkdir } from 'node:fs/promises';
++import { stat } from 'node:fs/promises';
+ import { installModelSelection } from '@deepseek-ai/dsh-agent';
+ import { ReasoningEffortId } from '@deepseek-ai/dsh-llm';
+@@ -496,8 +496,8 @@
+         try {
+-            await mkdir(cwd, { recursive: true });
++            if (!(await stat(cwd)).isDirectory()) throw new Error('工作目录不是文件夹');
+         }
+         catch (error) {
+-            throw new Error(`failed to ensure project directory "${cwd}": ${String(error)}`, { cause: error });
++            throw new RemoteError('session/directory-unavailable', `工作目录不存在或不可访问，请重新选择工作区："${cwd}"`, { cwd });
+         }
+         const composition = await this.composeAgent(presetId);
+         return (await this.ctx.agents.create({
