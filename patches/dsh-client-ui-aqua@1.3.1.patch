@@ -1,5 +1,5 @@
 diff --git a/lib/client.js b/lib/client.js
-index 537739705a368c7bdb78d39f8480c3bc60b9ef87..6147780d7101ea1ca9f7057292c6885d37bfe9d3 100644
+index 5377397..8c4a5fb 100644
 --- a/lib/client.js
 +++ b/lib/client.js
 @@ -7,7 +7,7 @@ window.__ModuleLoader__.load({
@@ -20,6 +20,60 @@ index 537739705a368c7bdb78d39f8480c3bc60b9ef87..6147780d7101ea1ca9f7057292c6885d
  		* one toggle, in the section's card language. Every other knob lives in the
  		* General settings' Appearance row, so the card stays the same shape as the
  		* other plugin cards.
+@@ -66,7 +66,7 @@ window.__ModuleLoader__.load({
+ 						},
+ 						children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+ 							className: AquaPluginCard_module_css_default.check,
+-							children: enabled && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(_deepseek_ai_dsh_client_ui_primitives.IconCheckOutline16, {})
++							children: enabled && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(_deepseek_ai_dsh_client_ui_primitives.IconCheckOutlineRegular, {})
+ 						}), enabled ? t("aqua.enable") : t("aqua.disable")]
+ 					})]
+ 				})
+@@ -680,7 +680,7 @@ window.__ModuleLoader__.load({
+ 										},
+ 										children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+ 											className: AquaAppearanceRow_module_css_default.check,
+-											children: whale && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(_deepseek_ai_dsh_client_ui_primitives.IconCheckOutline16, {})
++											children: whale && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(_deepseek_ai_dsh_client_ui_primitives.IconCheckOutlineRegular, {})
+ 										}), whale ? t("aqua.enable") : t("aqua.disable")]
+ 									})]
+ 								}),
+@@ -698,7 +698,7 @@ window.__ModuleLoader__.load({
+ 										},
+ 										children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+ 											className: AquaAppearanceRow_module_css_default.check,
+-											children: critters && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(_deepseek_ai_dsh_client_ui_primitives.IconCheckOutline16, {})
++											children: critters && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(_deepseek_ai_dsh_client_ui_primitives.IconCheckOutlineRegular, {})
+ 										}), critters ? t("aqua.enable") : t("aqua.disable")]
+ 									})]
+ 								}),
+@@ -716,7 +716,7 @@ window.__ModuleLoader__.load({
+ 										},
+ 										children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+ 											className: AquaAppearanceRow_module_css_default.check,
+-											children: mesh && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(_deepseek_ai_dsh_client_ui_primitives.IconCheckOutline16, {})
++											children: mesh && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(_deepseek_ai_dsh_client_ui_primitives.IconCheckOutlineRegular, {})
+ 										}), mesh ? t("aqua.enable") : t("aqua.disable")]
+ 									})]
+ 								})
+@@ -744,7 +744,7 @@ window.__ModuleLoader__.load({
+ 									},
+ 									children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+ 										className: AquaAppearanceRow_module_css_default.check,
+-										children: spotlight && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(_deepseek_ai_dsh_client_ui_primitives.IconCheckOutline16, {})
++										children: spotlight && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(_deepseek_ai_dsh_client_ui_primitives.IconCheckOutlineRegular, {})
+ 									}), spotlight ? t("aqua.enable") : t("aqua.disable")]
+ 								})]
+ 							}), /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
+@@ -761,7 +761,7 @@ window.__ModuleLoader__.load({
+ 									},
+ 									children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
+ 										className: AquaAppearanceRow_module_css_default.check,
+-										children: press && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(_deepseek_ai_dsh_client_ui_primitives.IconCheckOutline16, {})
++										children: press && /* @__PURE__ */ (0, react_jsx_runtime.jsx)(_deepseek_ai_dsh_client_ui_primitives.IconCheckOutlineRegular, {})
+ 									}), press ? t("aqua.enable") : t("aqua.disable")]
+ 								})]
+ 							})]
 @@ -3832,8 +3832,8 @@ void main() {
  					}
  				};
@@ -32,11 +86,28 @@ index 537739705a368c7bdb78d39f8480c3bc60b9ef87..6147780d7101ea1ca9f7057292c6885d
  				order: 5,
  				store: pluginStore,
 diff --git a/package.json b/package.json
-index 8991e02b7b7ff9fdb21ef8e6b164204bf367031a..f1a4ad21cda01fb3c788630fe6f2fc099c3baae2 100644
+index 8991e02..6a23cf1 100644
 --- a/package.json
 +++ b/package.json
-@@ -32,7 +32,7 @@
-     "bundle": { "patch": "./cordis.patch.yml" },
+@@ -17,10 +17,6 @@
+       "types": "./lib/types/index.d.ts",
+       "default": "./lib/index.js"
+     },
+-    "./invariant": {
+-      "types": "./lib/types/invariant.d.ts",
+-      "default": "./lib/invariant.js"
+-    },
+     "./client": {
+       "types": "./lib/types/client/index.d.ts",
+       "default": "./lib/client.js"
+@@ -29,10 +25,12 @@
+     "./package.json": "./package.json"
+   },
+   "dsh": {
+-    "bundle": { "patch": "./cordis.patch.yml" },
++    "bundle": {
++      "patch": "./cordis.patch.yml"
++    },
      "client": {
        "inject": [
 -        "@deepseek-ai/dsh-client-runtime",
@@ -44,7 +115,7 @@ index 8991e02b7b7ff9fdb21ef8e6b164204bf367031a..f1a4ad21cda01fb3c788630fe6f2fc09
          "@deepseek-ai/dsh-client-locale",
          "@deepseek-ai/dsh-client-ui-theme",
          "@deepseek-ai/dsh-client-ui-settings",
-@@ -48,20 +48,20 @@
+@@ -48,36 +46,33 @@
    },
    "license": "MIT",
    "peerDependencies": {
@@ -56,21 +127,39 @@ index 8991e02b7b7ff9fdb21ef8e6b164204bf367031a..f1a4ad21cda01fb3c788630fe6f2fc09
 -    "@deepseek-ai/dsh-client-ui-slots": "^0.1.0-rc.5",
 -    "@deepseek-ai/dsh-client-ui-theme": "^0.1.0-rc.5",
 -    "@deepseek-ai/dsh-invariants": "^0.1.0-rc.5",
-+    "@deepseek-ai/dsh-client-locale": "^0.1.5-rc.1",
-+    "@deepseek-ai/dsh-client-store": "^0.1.5-rc.1",
-+    "@deepseek-ai/dsh-client-ui-primitives": "^0.1.5-rc.1",
-+    "@deepseek-ai/dsh-client-ui-settings": "^0.1.5-rc.1",
-+    "@deepseek-ai/dsh-client-ui-settings-plugins": "^0.1.5-rc.1",
-+    "@deepseek-ai/dsh-client-ui-slots": "^0.1.5-rc.1",
-+    "@deepseek-ai/dsh-client-ui-theme": "^0.1.5-rc.1",
-+    "@deepseek-ai/dsh-invariants": "^0.1.5-rc.1",
-     "@deepseek-ai/cordis": "^4.0.1",
-     "react": "^18.2.0"
+-    "@deepseek-ai/cordis": "^4.0.1",
+-    "react": "^18.2.0"
++    "@deepseek-ai/dsh-client-locale": "0.2.1-alpha.2",
++    "@deepseek-ai/dsh-client-ui-primitives": "0.2.1-alpha.2",
++    "@deepseek-ai/dsh-client-ui-settings": "0.2.1-alpha.2",
++    "@deepseek-ai/dsh-client-ui-settings-plugins": "0.2.1-alpha.2",
++    "@deepseek-ai/dsh-client-ui-slots": "0.2.1-alpha.2",
++    "@deepseek-ai/dsh-client-ui-theme": "0.2.1-alpha.2",
++    "@deepseek-ai/cordis": "~4.0.5-alpha.1",
++    "react": "^18.2.0",
++    "@deepseek-ai/dsh-client-store": "0.2.1-alpha.2"
    },
    "devDependencies": {
      "@deepseek-ai/dsh-client-locale": "workspace:^",
 -    "@deepseek-ai/dsh-client-runtime": "workspace:^",
-+    "@deepseek-ai/dsh-client-store": "workspace:^",
      "@deepseek-ai/dsh-client-test-runtime": "workspace:^",
      "@deepseek-ai/dsh-client-ui-primitives": "workspace:^",
      "@deepseek-ai/dsh-client-ui-settings": "workspace:^",
+     "@deepseek-ai/dsh-client-ui-settings-plugins": "workspace:^",
+     "@deepseek-ai/dsh-client-ui-slots": "workspace:^",
+     "@deepseek-ai/dsh-client-ui-theme": "workspace:^",
+-    "@deepseek-ai/dsh-invariants": "workspace:^",
+     "@testing-library/react": "^16.1.0",
+     "@types/react": "~18.3.1",
+     "@deepseek-ai/cordis": "workspace:^",
+     "react": "^18.2.0",
+-    "react-dom": "^18.2.0"
++    "react-dom": "^18.2.0",
++    "@deepseek-ai/dsh-client-store": "workspace:^"
+   },
+   "files": [
+     "lib/index.js",
+-    "lib/invariant.js",
+     "lib/client.js",
+     "lib/types/**/*.d.ts",
+     "cordis.patch.yml"

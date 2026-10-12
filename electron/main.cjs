@@ -355,7 +355,6 @@ function ensureAquaPlugin(home, paths, environment) {
     "package.json",
     "cordis.patch.yml",
     path.join("lib", "index.js"),
-    path.join("lib", "invariant.js"),
     path.join("lib", "client.js"),
   ]) {
     const sourceFile = path.join(source, relative);
@@ -853,9 +852,19 @@ async function runSmokeTest() {
     }
     createWindow();
     ipcMain.handle("desktop-chat:delete-session", deleteDesktopSession);
+    updateController = createUpdateController({
+      app: { isPackaged: false, getPath: (name) => app.getPath(name), getVersion: () => app.getVersion() },
+      autoUpdater, dialog, log, getWindow: () => mainWindow,
+    });
+    ipcMain.handle("desktop-updates:get-state", () => updateController.getState());
+    ipcMain.handle("desktop-updates:set-enabled", (_event, enabled) => updateController.setEnabled(enabled));
+    ipcMain.handle("desktop-updates:check-now", () => updateController.checkNow());
     const rendererErrors = [];
     mainWindow.webContents.on("console-message", (event) => {
-      if (event.level === "error" && event.message.includes("Uncaught")) rendererErrors.push(event.message);
+      if (event.level === "error") {
+        log("renderer-error", event.message);
+        rendererErrors.push(event.message);
+      }
     });
     await mainWindow.loadURL(url);
     const deadline = Date.now() + 30_000;
@@ -865,7 +874,7 @@ async function runSmokeTest() {
       await new Promise(resolve => setTimeout(resolve, 250));
     }
     const ui = await mainWindow.webContents.executeJavaScript('({ title: document.querySelector(".dsh-desktop-chat-title")?.textContent, text: document.body.innerText })');
-    if (ui.title !== "对话区") throw new Error(`Desktop chat did not render: ${ui.text.slice(0, 3000)}`);
+    if (ui.title !== "对话区") throw new Error(`Desktop chat did not render: ${ui.text.slice(0, 3000)}\n${rendererErrors.join("\n")}`);
     log("info", "Smoke: latest Harness UI and desktop chat rendered");
     await require("./smoke-test.cjs").verifyChatUi(mainWindow, dshHomePath(), log);
     if (rendererErrors.length) throw new Error(rendererErrors.join("\n"));

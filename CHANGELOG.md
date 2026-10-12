@@ -2,6 +2,23 @@
 
 All notable changes to DeepSeek Harness are documented here.
 
+## [0.0.11] - 2026-10-12
+
+### Changed
+
+- Updated the complete bundled Harness runtime from `0.1.5-rc.1` to `0.2.1-alpha.2`, matching the latest official GitHub release merge (`d743267388641bc76f17c45ce8b4c231aed1d32c`, 2026-10-09).
+- Included upstream model discovery and account integration, fresh Session/Agent creation, working-directory management, built-in Web schedules, plugin inventory changes, and tool/subagent presentation improvements.
+- Rebased the conversation, sidebar, and workspace patches while preserving upstream workspace archive filters and the desktop direct-chat composer.
+- Adapted direct-chat navigation, current selection and rename to upstream's explicit Session references and `uiWorkspace` API; updated desktop/Aqua icon imports.
+- Aligned Aqua's runtime peers with the new Harness/Cordis versions and removed its retired invariant companion declaration.
+- Verify the deployed Harness version against the pinned production manifest during runtime preparation.
+
+### Upgrade notes
+
+- The bundled upstream version is an alpha preview; the official npm `latest` channel remains `0.2.0-rc.2` at this release's verification date.
+- Upstream now writes V4 Session logs and migrates supported older generations. Back up user data before upgrading; older Harness versions cannot read newly written V4 content.
+- Existing configuration and sessions continue to use the same user data directory. DeepSeek API Key models appear after credentials are configured; unsupported third-party plugins may need updates for upstream API changes.
+
 ## [0.0.10] - 2026-09-10
 
 ### Fixed
@@ -115,3 +132,5 @@ All notable changes to DeepSeek Harness are documented here.
 [0.0.7]: https://github.com/Icdafy/DeepSeek-Harness-Desktop/releases/tag/v0.0.7
 [0.0.8]: https://github.com/Icdafy/DeepSeek-Harness-Desktop/releases/tag/v0.0.8
 [0.0.9]: https://github.com/Icdafy/DeepSeek-Harness-Desktop/releases/tag/v0.0.9
+[0.0.10]: https://github.com/Icdafy/DeepSeek-Harness-Desktop/releases/tag/v0.0.10
+[0.0.11]: https://github.com/Icdafy/DeepSeek-Harness-Desktop/releases/tag/v0.0.11

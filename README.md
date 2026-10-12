@@ -7,14 +7,16 @@
 面向 Windows 的 DeepSeek Harness 桌面发行版。应用把上游 Web UI、本地服务、Node.js 运行时和插件管理工具封装进一个 Electron 桌面程序，安装后不需要另行配置 Node.js。
 
 > [!IMPORTANT]
-> 本项目是社区维护的桌面封装，不是 DeepSeek 官方桌面客户端。核心 Harness 来自 [deepseek-ai/DeepSeek-Harness](https://github.com/deepseek-ai/DeepSeek-Harness)，当前固定为 `@deepseek-ai/dsh@0.1.5-rc.1`。上游仍处于 developer preview，后续版本可能存在不兼容变化。
+> 本项目是社区维护的桌面封装，不是 DeepSeek 官方桌面客户端。核心 Harness 来自 [deepseek-ai/DeepSeek-Harness](https://github.com/deepseek-ai/DeepSeek-Harness)，当前固定为 `@deepseek-ai/dsh@0.2.1-alpha.2`。上游仍处于 developer preview，后续版本可能存在不兼容变化。
+
+v0.0.11 同步官方 GitHub 截至 2026-10-12 的最新发布提交，包含模型发现、新会话与 Agent 创建、工作目录管理、Web 自动化任务和工具展示等更新。本次内置的是上游 alpha 预览版；官方 npm `latest` 通道仍为 `0.2.0-rc.2`。详见 [本版发布说明](docs/releases/v0.0.11.md)。
 
 ## 下载
 
 前往 [Releases](https://github.com/Icdafy/DeepSeek-Harness-Desktop/releases/latest) 下载 Windows x64 版本：
 
-- `DeepSeek-Harness-Setup-0.0.10-x64.exe`：标准安装器，支持选择安装目录、桌面快捷方式和卸载。
-- `DeepSeek-Harness-Portable-0.0.10-x64.exe`：免安装便携版。
+- `DeepSeek-Harness-Setup-0.0.11-x64.exe`：标准安装器，支持选择安装目录、桌面快捷方式和卸载。
+- `DeepSeek-Harness-Portable-0.0.11-x64.exe`：免安装便携版。
 - `SHA256SUMS.txt`：发布文件的 SHA-256 校验值。
 
 本版本尚未使用商业代码签名证书，Windows SmartScreen 可能显示未知发布者。请只从本仓库 Releases 下载，并核对 SHA-256。
@@ -62,6 +64,8 @@
 从 v0.0.1 首次升级时，若新目录尚不存在，应用会自动迁移 `%APPDATA%\DeepSeek Harness Desktop` 中的原有数据。卸载程序默认保留数据，避免误删会话和配置。
 
 v0.0.9 引入官方 `0.1.5-rc.1` 的 V3 会话格式迁移：原日志保留，升级后新增的 V3 内容不支持旧版读取。详见 [v0.0.9 发布说明](docs/releases/v0.0.9.md)。
+
+v0.0.11 的上游运行时使用 V4 会话格式，并迁移受支持的旧会话。升级前请备份用户数据；旧版 Harness 无法读取新写入的 V4 内容。
 
 ## 从源码构建
 

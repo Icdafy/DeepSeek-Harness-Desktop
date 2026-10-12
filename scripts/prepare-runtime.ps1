@@ -134,4 +134,9 @@ if ($runtimeLinks.Count -ne 0) {
     throw "The deployed runtime contains non-portable filesystem links: $examples"
 }
 
-Write-Host "Runtime ready: Node.js $nodeReportedVersion, DeepSeek Harness 0.1.5-rc.1"
+$harnessManifest = Get-Content -LiteralPath (Join-Path $deployDirectory 'node_modules\@deepseek-ai\dsh\package.json') -Raw | ConvertFrom-Json
+$expectedHarness = (Get-Content -LiteralPath (Join-Path $repositoryRoot 'runtime\package.json') -Raw | ConvertFrom-Json).dependencies.'@deepseek-ai/dsh'
+if ($harnessManifest.version -ne $expectedHarness) {
+    throw "Expected DeepSeek Harness $expectedHarness, found $($harnessManifest.version)"
+}
+Write-Host "Runtime ready: Node.js $nodeReportedVersion, DeepSeek Harness $($harnessManifest.version)"

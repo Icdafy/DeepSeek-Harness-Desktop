@@ -62,3 +62,13 @@ The production runtime pins official Harness 0.1.5-rc.1. The three UI patches ar
 Permanent deletion is exposed through a sender-validated Electron IPC method. The host plugin checks session existence and rejects when a session is running, then flushes persistence over a private child-process IPC channel. The desktop stops the local host before removing the selected session directory (including all immutable generations), drops derived transcript caches and workspace references, then restarts the host and reauthenticates the renderer. Only session IDs are accepted from the page; filesystem roots come from the host and must remain inside dsh-home without junctions or symbolic links. Project files, independent forks and shared attachments remain intact.
 
 Smoke tests use a fresh temporary user-data directory and the real sandboxed Electron renderer. They exercise the sidebar, empty-session menu, durable rename, permanent deletion, preservation of a second session, and reload. No user conversation or model credentials are needed for this validation.
+
+## v0.0.11 upstream synchronization
+
+The runtime now pins official Harness `0.2.1-alpha.2`, corresponding to the latest release merge on the official repository's master branch, `d743267388641bc76f17c45ce8b4c231aed1d32c` (2026-10-09). This deliberately follows the newest GitHub release, ahead of npm's `latest` channel (`0.2.0-rc.2` at verification on 2026-10-12).
+
+Desktop UI patches target the exact new package versions. The workspace patch preserves upstream's default/show/only archive-filter behavior while filtering direct chats. Aqua uses client-store, exact matching Harness peers and Cordis `~4.0.5-alpha.1`; its obsolete invariant export and peer are removed. Runtime preparation checks the deployed Harness version against `runtime/package.json` before packaging.
+
+Upstream's current Session format is V4. Its persistence catalog owns historical migration; the desktop continues to use the same user-data directory and never rewrites session transcripts itself. Older runtimes cannot read newly written V4 content.
+
+Direct-chat navigation and archiving now use `uiWorkspace`, current selection follows the Session catalog's `retainedBy.mainView`, and rename borrows a Session reference with `sessions.using`. Both desktop chat and Aqua use the new Regular icon exports. Smoke checks also open the native composer, verify upstream's rejection of forks without a completed turn, archive a chat while retaining its sibling, render desktop update/plugin settings and toggle Aqua; updater checks in smoke mode use a non-networking development controller.

@@ -19,11 +19,13 @@ async function verifyChatUi(window, home, log) {
   // A fresh profile displays the upstream developer-preview notice.
   await until('document.body.innerText.includes("继续")', "preview notice");
   await clickText("继续");
-  await until('document.body.innerText.includes("稍后配置")', "optional model setup");
-  await clickText("稍后配置");
+  await until('document.body.innerText.includes("稍后配置") || !document.body.innerText.includes("预览版说明")', "preview dismissed");
+  if (await js('document.body.innerText.includes("稍后配置")')) await clickText("稍后配置");
   await create();
   await until('document.querySelectorAll(".dsh-desktop-chat-item").length === 1', "create blank chat");
   const [deletedId] = await ids();
+  await until('document.querySelector(".dsh-desktop-chat-item[data-current=true]") && document.querySelector("[contenteditable=true]")', "open chat and composer");
+  if (await js('document.body.innerText.includes("稍后配置")')) await clickText("稍后配置");
   await until('!!document.querySelector(".dsh-desktop-chat-row-menu")', "blank chat menu");
   await js('document.querySelector(".dsh-desktop-chat-row-menu").click()');
   await clickText("重命名");
@@ -57,6 +59,36 @@ async function verifyChatUi(window, home, log) {
   await window.webContents.reload();
   await until('document.querySelectorAll(".dsh-desktop-chat-item").length === 1', "deletion survives reload");
   log("info", "Smoke: permanent deletion, retained sibling and reload passed");
+  if (await js('document.body.innerText.includes("稍后配置")')) await clickText("稍后配置");
+  await js('document.querySelector(".dsh-desktop-chat-item").click()');
+  await until('!!document.querySelector(".dsh-desktop-chat-item[data-current=true]")', "reopen retained chat");
+  await js('document.querySelector(".dsh-desktop-chat-row-menu").click()');
+  await clickText("分叉对话");
+  // Upstream rejects a fork until a session has a completed model turn.
+  await until('document.querySelector(".dsh-desktop-chat-error")?.textContent.includes("session/fork-unavailable")', "empty-session fork guard");
+  if ((await ids()).length !== 1) throw new Error("Rejected fork changed the session list");
+  await create();
+  await until('document.querySelectorAll(".dsh-desktop-chat-item").length === 2 && document.querySelector(".dsh-desktop-chat-item[data-current=true]") === document.querySelector(".dsh-desktop-chat-item")', "open chat to archive");
+  const [archivedId] = await ids();
+  await js('document.querySelector(".dsh-desktop-chat-item[data-current=true] .dsh-desktop-chat-row-menu").click()');
+  await clickText("归档对话");
+  await until(`document.querySelectorAll('.dsh-desktop-chat-item').length === 1 && !JSON.parse(localStorage.getItem('dsh.desktop-chat.sessions.v1') || '[]').includes(${JSON.stringify(archivedId)})`, "archive chat");
+  if (!(await ids()).includes(retainedId)) throw new Error("Archiving lost the original chat");
+  log("info", "Smoke: empty-session fork guard, navigation and archive passed");
+  if (await js('document.body.innerText.includes("稍后配置")')) await clickText("稍后配置");
+  await clickText("设置");
+  await until('document.body.innerText.includes("通用设置")', "settings dialog");
+  await clickText("通用设置");
+  await until('!!document.querySelector(".dsh-desktop-update-row")', "desktop updater settings");
+  await clickText("内置插件");
+  await until('document.body.innerText.includes("桌面插件")', "desktop plugins tab");
+  await clickText("桌面插件");
+  await until('document.body.innerText.includes("玻璃主题") && !!document.querySelector(".dsh-desktop-chat-card")', "Aqua and chat settings");
+  await js(`Array.from(document.querySelectorAll('li')).find(el => el.textContent.includes('玻璃主题'))?.querySelector('button[aria-pressed]')?.click()`);
+  await until('!document.documentElement.hasAttribute("data-dsh-aqua")', "disable Aqua");
+  await js(`Array.from(document.querySelectorAll('li')).find(el => el.textContent.includes('玻璃主题'))?.querySelector('button[aria-pressed]')?.click()`);
+  await until('document.documentElement.hasAttribute("data-dsh-aqua")', "enable Aqua");
+  log("info", "Smoke: updater, desktop plugin settings and Aqua toggles passed");
 }
 
 module.exports = { verifyChatUi };

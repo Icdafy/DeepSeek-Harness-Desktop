@@ -84,11 +84,11 @@ function findElement(element, predicate) {
   return undefined;
 }
 
-test("desktop chat plugin is bundled into the v0.0.10 runtime", () => {
-  assert.equal(readJson("package.json").version, "0.0.10");
-  assert.equal(readJson("runtime/package.json").version, "0.0.10");
-  assert.equal(readJson("desktop-chat/package.json").version, "0.0.10");
-  assert.equal(readJson("desktop-updater/package.json").version, "0.0.10");
+test("desktop chat plugin is bundled into the v0.0.11 runtime", () => {
+  assert.equal(readJson("package.json").version, "0.0.11");
+  assert.equal(readJson("runtime/package.json").version, "0.0.11");
+  assert.equal(readJson("desktop-chat/package.json").version, "0.0.11");
+  assert.equal(readJson("desktop-updater/package.json").version, "0.0.11");
   assert.equal(
     readJson("runtime/package.json").dependencies["@deepseek-harness/desktop-chat"],
     "workspace:*",
@@ -97,12 +97,12 @@ test("desktop chat plugin is bundled into the v0.0.10 runtime", () => {
 
 test("desktop chat client registers settings and sidebar surfaces", () => {
   const plugin = loadClientPlugin();
-  assert.equal(plugin.inject.join(","), "slots,sessions,workspaces");
+  assert.equal(plugin.inject.join(","), "slots,sessions,uiWorkspace");
 
   const registrations = [];
   const ctx = {
     sessions: {},
-    workspaces: {},
+    uiWorkspace: {},
     slots: {
       inject: (name, register) => {
         const result = register();
@@ -134,18 +134,17 @@ test("new direct chat creates and opens a session without a workspace", async ()
       createCalls.push(options);
       return "direct-session-1";
     },
-    open: (id) => opened.push(id),
   };
   const ctx = {
     sessions,
-    workspaces: { archiveSession: async () => ({ ok: true }) },
+    uiWorkspace: { openSession: (id) => opened.push(id), archiveSession: async () => {} },
     slots: {
       inject: (name, register) => {
         const result = register();
         if (name === "sidebar.footer.action") {
           directChat = result.component;
           assert.equal(result.options.inject().sessions, sessions);
-          assert.equal(result.options.inject().workspaces, ctx.workspaces);
+          assert.equal(result.options.inject().uiWorkspace, ctx.uiWorkspace);
         }
       },
       register: (options, component) => ({ options, component }),
@@ -153,7 +152,7 @@ test("new direct chat creates and opens a session without a workspace", async ()
   };
   plugin.apply(ctx);
 
-  const rendered = directChat({ wide: true, sessions, workspaces: ctx.workspaces });
+  const rendered = directChat({ wide: true, sessions, uiWorkspace: ctx.uiWorkspace });
   const newChatButton = findElement(
     rendered,
     (element) => element?.type === "button" && element.props?.["aria-label"] === "新对话",
@@ -169,11 +168,11 @@ test("new direct chat creates and opens a session without a workspace", async ()
 test("direct chats use the native workspace composer and stay out of workspace lists", () => {
   const source = readFileSync(path.join(root, "desktop-chat", "lib", "client.js"), "utf8");
   const conversationPatch = readFileSync(
-    path.join(root, "patches", "@deepseek-ai__dsh-client-ui-conversation@0.1.5-rc.1.patch"),
+    path.join(root, "patches", "@deepseek-ai__dsh-client-ui-conversation@0.2.1-alpha.2.patch"),
     "utf8",
   );
   const workspacePatch = readFileSync(
-    path.join(root, "patches", "@deepseek-ai__dsh-client-ui-workspace@0.1.5-rc.1.patch"),
+    path.join(root, "patches", "@deepseek-ai__dsh-client-ui-workspace@0.2.1-alpha.2.patch"),
     "utf8",
   );
   assert.doesNotMatch(source, /conversation\.composer/);

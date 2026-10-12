@@ -5,13 +5,13 @@ window.__ModuleLoader__.load({
     const React = require("react");
     const {
       Button,
-      IconArchiveOutline20,
-      IconBranchOutline16,
-      IconCloseFill14,
-      IconEditOutline16,
-      IconEllipsisOutline16,
-      IconNewChatOutline16,
-      IconSearchOutline16,
+      IconArchiveOutlineRegular,
+      IconBranchOutlineRegular,
+      IconCloseFillRegular,
+      IconEditOutlineRegular,
+      IconEllipsisOutlineRegular,
+      IconNewChatOutlineRegular,
+      IconSearchOutlineRegular,
       Menu,
       Modal,
       StateDot,
@@ -426,14 +426,14 @@ window.__ModuleLoader__.load({
       }, React.createElement("span", { className: "dsh-desktop-chat-switch-thumb" }));
     }
 
-    function DirectChatRow({ id, summary, current, sessions, onRename, onFork, onArchive, onDelete }) {
+    function DirectChatRow({ id, summary, current, uiWorkspace, onRename, onFork, onArchive, onDelete }) {
       const [menuOpen, setMenuOpen] = React.useState(false);
       const title = titleOf(summary);
       const menuItems = [
-        { id: "rename", label: "重命名", icon: React.createElement(IconEditOutline16) },
+        { id: "rename", label: "重命名", icon: React.createElement(IconEditOutlineRegular) },
         { id: "delete", label: "完全删除", danger: true },
-        { id: "fork", label: "分叉对话", icon: React.createElement(IconBranchOutline16) },
-        { id: "archive", label: "归档对话", icon: React.createElement(IconArchiveOutline20, { size: 16 }) },
+        { id: "fork", label: "分叉对话", icon: React.createElement(IconBranchOutlineRegular) },
+        { id: "archive", label: "归档对话", icon: React.createElement(IconArchiveOutlineRegular, { size: 16 }) },
       ];
       return React.createElement("div", {
         className: "dsh-desktop-chat-item",
@@ -442,7 +442,7 @@ window.__ModuleLoader__.load({
         "aria-selected": current === id,
         "data-current": current === id ? "true" : "false",
         "data-menu-open": menuOpen ? "true" : "false",
-        onClick: () => sessions.open(id),
+        onClick: () => uiWorkspace.openSession(id),
       },
         React.createElement("span", {
           className: "dsh-desktop-chat-item-status",
@@ -478,15 +478,17 @@ window.__ModuleLoader__.load({
               event.stopPropagation();
               setMenuOpen((value) => !value);
             },
-          }, React.createElement(IconEllipsisOutline16)),
+          }, React.createElement(IconEllipsisOutlineRegular)),
         })),
       );
     }
 
-    function DirectChatModule({ wide, expandSidebar, sessions, workspaces }) {
+    function DirectChatModule({ wide, expandSidebar, sessions, uiWorkspace }) {
       const [enabled] = useEnabled();
       const [savedIds, saveSessionIds] = useSavedSessionIds();
       const snapshot = useSessionList(sessions.list);
+      const currentSessionId = Object.values(snapshot.byId).find(
+        (session) => (session.retainedBy?.mainView ?? 0) > 0)?.id;
       const [creating, setCreating] = React.useState(false);
       const [query, setQuery] = React.useState("");
       const [searchExpanded, setSearchExpanded] = React.useState(false);
@@ -517,7 +519,7 @@ window.__ModuleLoader__.load({
         try {
           const sessionId = await sessions.create({});
           saveFront(sessionId);
-          sessions.open(sessionId);
+          uiWorkspace.openSession(sessionId);
         } catch (reason) {
           setError(reason instanceof Error ? reason.message : String(reason));
         } finally {
@@ -530,7 +532,7 @@ window.__ModuleLoader__.load({
         try {
           const childId = await sessions.fork({ sessionId, increaseTitle: true });
           saveFront(childId);
-          sessions.open(childId);
+          uiWorkspace.openSession(childId);
         } catch (reason) {
           setError(reason instanceof Error ? reason.message : String(reason));
         }
@@ -539,10 +541,8 @@ window.__ModuleLoader__.load({
       const archiveChat = async (sessionId) => {
         setError("");
         try {
-          const result = await workspaces.archiveSession(sessionId);
-          if (result?.ok === false) throw new Error(result.error?.message || "归档失败");
+          await uiWorkspace.archiveSession(sessionId);
           removeSaved(sessionId);
-          if (snapshot.current === sessionId) sessions.clear();
         } catch (reason) {
           setError(reason instanceof Error ? reason.message : String(reason));
         }
@@ -554,9 +554,8 @@ window.__ModuleLoader__.load({
         setRenaming(true);
         setError("");
         try {
-          const session = sessions.binding(renameTarget)?.session;
-          if (session === undefined) throw new Error("对话暂不可用");
-          const result = await session.rename(title);
+          const result = await sessions.using(renameTarget, { source: "workspaceOperation" },
+            (reference) => reference.binding.session.rename(title));
           if (!result.ok) throw new Error(result.error.message);
           setRenameTarget(null);
         } catch (reason) {
@@ -575,7 +574,6 @@ window.__ModuleLoader__.load({
           const result = await window.deepseekHarnessDesktop.deleteSession(deleteTarget.id);
           if (!result.ok) throw new Error(result.error || "删除失败");
           removeSaved(deleteTarget.id);
-          if (snapshot.current === deleteTarget.id) sessions.clear();
           setDeleteTarget(null);
           window.location.replace(result.url);
         } catch (reason) {
@@ -602,7 +600,7 @@ window.__ModuleLoader__.load({
               setSearchExpanded(true);
               expandSidebar?.();
             },
-          }, React.createElement(IconSearchOutline16, { size: 18 }))),
+          }, React.createElement(IconSearchOutlineRegular, { size: 18 }))),
           React.createElement(Tooltip, {
             label: "新对话",
             delayMs: 500,
@@ -612,7 +610,7 @@ window.__ModuleLoader__.load({
             "aria-label": "新对话",
             disabled: creating,
             onClick: createChat,
-          }, React.createElement(IconNewChatOutline16, { size: 18 }))),
+          }, React.createElement(IconNewChatOutlineRegular, { size: 18 }))),
         );
       }
 
@@ -637,7 +635,7 @@ window.__ModuleLoader__.load({
               "aria-label": "搜索对话",
               "aria-expanded": searchExpanded,
               onClick: () => setSearchExpanded(true),
-            }, React.createElement(IconSearchOutline16, { size: searchExpanded ? 11 : 14 })),
+            }, React.createElement(IconSearchOutlineRegular, { size: searchExpanded ? 11 : 14 })),
             React.createElement("input", {
               ref: searchInput,
               className: "dsh-desktop-chat-search-input",
@@ -662,7 +660,7 @@ window.__ModuleLoader__.load({
                 setQuery("");
                 setSearchExpanded(false);
               },
-            }, React.createElement(IconCloseFill14)) : null,
+            }, React.createElement(IconCloseFillRegular)) : null,
           ),
           React.createElement(Tooltip, {
             label: "新对话",
@@ -675,7 +673,7 @@ window.__ModuleLoader__.load({
             "aria-label": "新对话",
             disabled: creating,
             onClick: createChat,
-          }, React.createElement(IconNewChatOutline16, { size: 16 }))),
+          }, React.createElement(IconNewChatOutlineRegular, { size: 16 }))),
         ),
         React.createElement("div", { className: "dsh-desktop-chat-list-area" },
           React.createElement("div", {
@@ -687,8 +685,8 @@ window.__ModuleLoader__.load({
               key: id,
               id,
               summary,
-              current: snapshot.current,
-              sessions,
+              current: currentSessionId,
+              uiWorkspace,
               onRename: (sessionId, title) => {
                 setRenameTarget(sessionId);
                 setRenameDraft(title);
@@ -776,7 +774,7 @@ window.__ModuleLoader__.load({
       );
     }
 
-    const inject = ["slots", "sessions", "workspaces"];
+    const inject = ["slots", "sessions", "uiWorkspace"];
     function apply(ctx) {
       ctx.slots.inject("settings.plugins.tab", () => ctx.slots.register({
         name: "settings.plugins.tab",
@@ -795,7 +793,7 @@ window.__ModuleLoader__.load({
         name: "sidebar.footer.action",
         id: "desktop-chat",
         order: 10,
-        inject: () => ({ sessions: ctx.sessions, workspaces: ctx.workspaces }),
+        inject: () => ({ sessions: ctx.sessions, uiWorkspace: ctx.uiWorkspace }),
       }, DirectChatModule));
     }
 

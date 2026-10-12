@@ -1,8 +1,8 @@
 diff --git a/lib/client.js b/lib/client.js
-index 1b7f1344e65adac4f08f13a35eb94fa3b89bd9f1..a1b93a0f5e300d782e4a80fd6b5832f7645953f0 100644
+index 21c89d3..cc5546a 100644
 --- a/lib/client.js
 +++ b/lib/client.js
-@@ -14901,7 +14901,7 @@ window.__ModuleLoader__.load({
+@@ -21115,7 +21115,7 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
  					renderSlot("conversation.hero.agentPreset", {})
  				]
  			});
@@ -11,7 +11,7 @@ index 1b7f1344e65adac4f08f13a35eb94fa3b89bd9f1..a1b93a0f5e300d782e4a80fd6b5832f7
  			const inputBar = renderSlot("conversation.composer.bar", {
  				variant: hero ? "hero" : "composer",
  				...inert ? {
-@@ -14923,7 +14923,7 @@ window.__ModuleLoader__.load({
+@@ -21137,7 +21137,7 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
  						t,
  						renderSlot
  					}),

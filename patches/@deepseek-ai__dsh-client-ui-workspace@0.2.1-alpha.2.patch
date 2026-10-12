@@ -1,0 +1,21 @@
+diff --git a/lib/client.js b/lib/client.js
+index 684800c..89c624b 100644
+--- a/lib/client.js
++++ b/lib/client.js
+@@ -978,8 +978,15 @@ window.__ModuleLoader__.load({
+ 		* sessions follow the archived filter, while their accounting slots remain
+ 		* either way so unarchiving restores position.
+ 		*/
++		const DIRECT_CHAT_SESSION_IDS_KEY = "dsh.desktop-chat.sessions.v1";
++		function isDirectChat(id) {
++			try {
++				const ids = JSON.parse(localStorage.getItem(DIRECT_CHAT_SESSION_IDS_KEY) ?? "[]");
++				return Array.isArray(ids) && ids.includes(id);
++			} catch { return false; }
++		}
+ 		function sessionVisible(session, current, archived, archivedFilter) {
+-			if (session.origin === "subagent") return false;
++			if (isDirectChat(session.id) || session.origin === "subagent") return false;
+ 			if (session.blank && session.id !== current) return false;
+ 			switch (archivedFilter) {
+ 				case "default": return !archived.has(session.id);
