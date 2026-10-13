@@ -30,9 +30,9 @@
     "electron-updater": "6.6.2"
   },
   "devDependencies": {
-    "electron": "43.4.0",
+    "electron": "44.7.0",
     "electron-builder": "26.15.3",
-    "pnpm": "11.22.0"
+    "pnpm": "12.11.2"
   },
   "build": {
     "appId": "ai.deepseek.harness.desktop",
