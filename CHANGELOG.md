@@ -2,6 +2,18 @@
 
 All notable changes to DeepSeek Harness are documented here.
 
+## [0.0.13] - 2026-10-20
+
+### Changed
+
+- Updated the complete bundled Harness runtime from `0.2.1-alpha.2` to the official npm `latest` release `0.2.1-rc.2`, which includes support for DeepSeek-V4.1-Flash-1017.
+- Use `deepseek-flash` as the canonical Flash model ID and display `DeepSeek-V4.1-Flash-1017` in the default model catalog. Normalize retired `deepseek-v4-flash` and `deepseek-v4-flash-vision-exp` selections, legacy catalogs, and streaming requests to the current ID while preserving Pro and custom models.
+- Rebased desktop UI, workspace-directory validation, and Aqua compatibility patches onto the new runtime.
+
+### Validation
+
+- Added request-body regression coverage for direct and prepared streaming calls, both retired Flash aliases, model capabilities, legacy catalog deduplication, and preservation of other model IDs. Tests use simulated streaming responses without API credentials.
+
 ## [0.0.12] - 2026-10-12
 
 ### Added
@@ -147,3 +159,4 @@ All notable changes to DeepSeek Harness are documented here.
 [0.0.10]: https://github.com/Icdafy/DeepSeek-Harness-Desktop/releases/tag/v0.0.10
 [0.0.11]: https://github.com/Icdafy/DeepSeek-Harness-Desktop/releases/tag/v0.0.11
 [0.0.12]: https://github.com/Icdafy/DeepSeek-Harness-Desktop/releases/tag/v0.0.12
+[0.0.13]: https://github.com/Icdafy/DeepSeek-Harness-Desktop/releases/tag/v0.0.13

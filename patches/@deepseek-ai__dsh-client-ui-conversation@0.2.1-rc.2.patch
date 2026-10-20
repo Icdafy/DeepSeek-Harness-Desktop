@@ -1,9 +1,9 @@
 diff --git a/lib/client.js b/lib/client.js
-index 21c89d3..cc5546a 100644
+index 4bfdd13..e472a1f 100644
 --- a/lib/client.js
 +++ b/lib/client.js
-@@ -21115,7 +21115,7 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
- 					renderSlot("conversation.hero.agentPreset", {})
+@@ -17816,7 +17816,7 @@ window.__ModuleLoader__.load({
+ 					})
  				]
  			});
 -			const inert = sessionId === void 0 || hero && chipTitle === void 0;
@@ -11,7 +11,7 @@ index 21c89d3..cc5546a 100644
  			const inputBar = renderSlot("conversation.composer.bar", {
  				variant: hero ? "hero" : "composer",
  				...inert ? {
-@@ -21137,7 +21137,7 @@ Set the \`cycles\` parameter to \`"ref"\` to resolve cyclical schemas with defs.
+@@ -17838,7 +17838,7 @@ window.__ModuleLoader__.load({
  						t,
  						renderSlot
  					}),

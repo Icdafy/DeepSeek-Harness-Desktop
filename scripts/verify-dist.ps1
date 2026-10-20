@@ -52,6 +52,20 @@ foreach ($artifact in @($setup[0], $portable[0])) {
     }
 }
 
+$packagedResources = Join-Path $distDirectory 'win-unpacked\resources'
+$packagedNode = Join-Path $packagedResources 'runtime\node.exe'
+$previousModelTestRuntime = $env:DSH_MODEL_TEST_RUNTIME
+try {
+    $env:DSH_MODEL_TEST_RUNTIME = Join-Path $packagedResources 'harness\node_modules'
+    & $packagedNode --test (Join-Path $repositoryRoot 'test\model-routing.test.cjs')
+    if ($LASTEXITCODE -ne 0) {
+        throw "Packaged model-routing tests failed with exit code $LASTEXITCODE"
+    }
+}
+finally {
+    $env:DSH_MODEL_TEST_RUNTIME = $previousModelTestRuntime
+}
+
 $stdoutPath = Join-Path $distDirectory 'portable-smoke.stdout.log'
 $stderrPath = Join-Path $distDirectory 'portable-smoke.stderr.log'
 $resultPath = Join-Path $distDirectory 'portable-smoke.result.txt'
@@ -82,4 +96,4 @@ if ($result -notmatch "^OK $([regex]::Escape($version)) http://127\.0\.0\.1:\d+"
 }
 
 Remove-Item -LiteralPath $stdoutPath, $stderrPath, $resultPath -Force -ErrorAction SilentlyContinue
-Write-Host "Verified installer, portable executable, updater metadata, and packaged smoke test."
+Write-Host "Verified installer, portable executable, updater metadata, packaged model routing, and packaged smoke test."

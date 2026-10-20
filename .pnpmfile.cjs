@@ -8,10 +8,10 @@ module.exports = {
       if (pkg.name === "dsh-client-ui-aqua" && pkg.version === "1.3.1") {
         delete pkg.peerDependencies["@deepseek-ai/dsh-client-runtime"];
         delete pkg.peerDependencies["@deepseek-ai/dsh-invariants"];
-        pkg.peerDependencies["@deepseek-ai/dsh-client-store"] = "0.2.1-alpha.2";
-        pkg.peerDependencies["@deepseek-ai/cordis"] = "~4.0.5-alpha.1";
+        pkg.peerDependencies["@deepseek-ai/dsh-client-store"] = "0.2.1-rc.2";
+        pkg.peerDependencies["@deepseek-ai/cordis"] = "~4.0.5";
         for (const name of Object.keys(pkg.peerDependencies)) {
-          if (name.startsWith("@deepseek-ai/dsh-")) pkg.peerDependencies[name] = "0.2.1-alpha.2";
+          if (name.startsWith("@deepseek-ai/dsh-")) pkg.peerDependencies[name] = "0.2.1-rc.2";
         }
       }
       return pkg;

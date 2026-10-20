@@ -86,11 +86,11 @@ function findElement(element, predicate) {
   return undefined;
 }
 
-test("desktop chat plugin is bundled into the v0.0.12 runtime", () => {
-  assert.equal(readJson("package.json").version, "0.0.12");
-  assert.equal(readJson("runtime/package.json").version, "0.0.12");
-  assert.equal(readJson("desktop-chat/package.json").version, "0.0.12");
-  assert.equal(readJson("desktop-updater/package.json").version, "0.0.12");
+test("desktop plugins and runtime share the application version", () => {
+  const version = readJson("package.json").version;
+  assert.equal(readJson("runtime/package.json").version, version);
+  assert.equal(readJson("desktop-chat/package.json").version, version);
+  assert.equal(readJson("desktop-updater/package.json").version, version);
   assert.equal(
     readJson("runtime/package.json").dependencies["@deepseek-harness/desktop-chat"],
     "workspace:*",
@@ -233,11 +233,11 @@ test("new direct chat creates and opens a session without a workspace", async ()
 test("direct chats use the native workspace composer and stay out of workspace lists", () => {
   const source = readFileSync(path.join(root, "desktop-chat", "lib", "client.js"), "utf8");
   const conversationPatch = readFileSync(
-    path.join(root, "patches", "@deepseek-ai__dsh-client-ui-conversation@0.2.1-alpha.2.patch"),
+    path.join(root, "patches", "@deepseek-ai__dsh-client-ui-conversation@0.2.1-rc.2.patch"),
     "utf8",
   );
   const workspacePatch = readFileSync(
-    path.join(root, "patches", "@deepseek-ai__dsh-client-ui-workspace@0.2.1-alpha.2.patch"),
+    path.join(root, "patches", "@deepseek-ai__dsh-client-ui-workspace@0.2.1-rc.2.patch"),
     "utf8",
   );
   assert.doesNotMatch(source, /conversation\.composer/);

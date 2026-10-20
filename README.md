@@ -7,16 +7,16 @@
 面向 Windows 的 DeepSeek Harness 桌面发行版。应用把上游 Web UI、本地服务、Node.js 运行时和插件管理工具封装进一个 Electron 桌面程序，安装后不需要另行配置 Node.js。
 
 > [!IMPORTANT]
-> 本项目是社区维护的桌面封装，不是 DeepSeek 官方桌面客户端。核心 Harness 来自 [deepseek-ai/DeepSeek-Harness](https://github.com/deepseek-ai/DeepSeek-Harness)，当前固定为 `@deepseek-ai/dsh@0.2.1-alpha.2`。上游仍处于 developer preview，后续版本可能存在不兼容变化。
+> 本项目是社区维护的桌面封装，不是 DeepSeek 官方桌面客户端。核心 Harness 来自 [deepseek-ai/DeepSeek-Harness](https://github.com/deepseek-ai/DeepSeek-Harness)，当前固定为 `@deepseek-ai/dsh@0.2.1-rc.2`。上游仍处于 developer preview，后续版本可能存在不兼容变化。
 
-v0.0.12 为工作区内每条对话新增“完全删除”，并修复启动时自动重建已移除工作目录的问题。内置运行时继续使用 `0.2.1-alpha.2`，包含 v0.0.11 同步的模型发现、工作目录管理和 Web 自动化任务等能力。详见 [本版发布说明](docs/releases/v0.0.12.md)。
+v0.0.13 升级至官方 Harness `0.2.1-rc.2`，Flash 统一使用 `deepseek-flash` 调用最新的 **DeepSeek-V4.1-Flash-1017**。旧 Flash 名称在模型解析和请求时自动转换，模型列表显示完整版本；保留工作区“完全删除”和缺失目录检查等桌面能力。详见 [本版发布说明](docs/releases/v0.0.13.md)。
 
 ## 下载
 
 前往 [Releases](https://github.com/Icdafy/DeepSeek-Harness-Desktop/releases/latest) 下载 Windows x64 版本：
 
-- `DeepSeek-Harness-Setup-0.0.12-x64.exe`：标准安装器，支持选择安装目录、桌面快捷方式和卸载。
-- `DeepSeek-Harness-Portable-0.0.12-x64.exe`：免安装便携版。
+- `DeepSeek-Harness-Setup-0.0.13-x64.exe`：标准安装器，支持选择安装目录、桌面快捷方式和卸载。
+- `DeepSeek-Harness-Portable-0.0.13-x64.exe`：免安装便携版。
 - `SHA256SUMS.txt`：发布文件的 SHA-256 校验值。
 
 本版本尚未使用商业代码签名证书，Windows SmartScreen 可能显示未知发布者。请只从本仓库 Releases 下载，并核对 SHA-256。
@@ -27,6 +27,8 @@ v0.0.12 为工作区内每条对话新增“完全删除”，并修复启动时
 2. 等待桌面窗口中的本地 Harness 服务启动。
 3. 在 **Settings → Models** 中配置模型供应商和 API Key。
 4. 选择工作目录开始工程会话，或在左侧“对话区”点击“新对话”直接与模型聊天。
+
+使用最新 Flash 时选择 **DeepSeek-V4.1-Flash-1017**，API 模型名为 `deepseek-flash`。依据 [DeepSeek 官方说明](https://api-docs.deepseek.com/)，旧名称 `deepseek-v4-flash`、`deepseek-v4-flash-vision-exp` 对应模型已下线；本版将这些旧选择转换为 `deepseek-flash` 发出请求，调用方式与 Flash 计费不变。DeepSeek Pro 和自定义模型仍按各自配置调用。
 
 应用只监听 `127.0.0.1`，首次启动时选择一个空闲端口并保存供后续启动复用，使基于浏览器来源保存的界面配置持续有效；若该端口临时被占用，本次启动会自动回退到其他空闲端口。服务不会暴露到局域网，关闭桌面窗口时会一并退出。
 

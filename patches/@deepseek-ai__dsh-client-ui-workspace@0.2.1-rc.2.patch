@@ -1,8 +1,8 @@
 diff --git a/lib/client.js b/lib/client.js
-index 684800c..89c624b 100644
+index 5cca45b..ffe874e 100644
 --- a/lib/client.js
 +++ b/lib/client.js
-@@ -978,8 +978,15 @@ window.__ModuleLoader__.load({
+@@ -961,8 +961,15 @@ window.__ModuleLoader__.load({
  		* sessions follow the archived filter, while their accounting slots remain
  		* either way so unarchiving restores position.
  		*/
@@ -19,7 +19,8 @@ index 684800c..89c624b 100644
  			if (session.blank && session.id !== current) return false;
  			switch (archivedFilter) {
  				case "default": return !archived.has(session.id);
-@@ -1568,5 +1575,8 @@ window.__ModuleLoader__.load({
+@@ -1589,7 +1596,10 @@ window.__ModuleLoader__.load({
+ 						initial = "done";
  					}, (reason) => {
  						if (this.lifetime.signal.aborted) return;
 -						initial = "waiting";
@@ -29,7 +30,9 @@ index 684800c..89c624b 100644
 +						});
  						console.warn("initial Session restoration failed:", reason);
  					});
-@@ -2294,6 +2304,6 @@ window.__ModuleLoader__.load({
+ 				};
+@@ -2320,7 +2330,7 @@ window.__ModuleLoader__.load({
+ 							children: primaryStatus.trailingLabel ?? timeLabel(row.updatedAt, now, t)
  						}),
  						row.pinned && !row.archived && (0, react_jsx_runtime.jsx)(PinnedIndicator, { t }),
 -						!row.blank && (0, react_jsx_runtime.jsxs)("span", {
